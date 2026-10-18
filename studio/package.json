@@ -1,0 +1,12 @@
+{
+  "name": "rea-studio-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local screen recording and editing prototype in a preserved REA checkout",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": { "node": ">=22.19.0" }
+}

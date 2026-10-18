@@ -1,0 +1,47 @@
+{
+  "checked_on": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "source_url": "https://github.com/morluto/rea",
+  "upstream_remote": "upstream",
+  "upstream_commit": "c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96",
+  "source_package_version": "6.7.0",
+  "development_branch": "codex/screen-studio-mvp",
+  "clone_type": "full Git clone; optional submodules not initialized",
+  "upstream_license": "MIT",
+  "upstream_copyright": "Copyright (c) 2026 morluto",
+  "preserved_files": {
+    "LICENSE": "798f9e4d18e49b30bf2f12696c8ced73dc4e1413da375a333d01281543a1ea8b",
+    "THIRD_PARTY_NOTICES": "c7db9545d34eb4dac7c0e270cb1a639dfd156d4d462a41bcf65cde71369c222c",
+    "README": "75ca44765dfa3d5bce1dfba3c9ddad35fca29f8e8fbc8cae60b4d9078e43e211"
+  },
+  "runtime_package": {
+    "name": "rea-agents",
+    "version": "6.7.0",
+    "location": "studio/.local/tooling",
+    "lifecycle_scripts": "disabled during installation",
+    "note": "Published package, not a build of the exact source checkout"
+  },
+  "prototype_license": "studio/LICENSE (MIT)",
+  "user_evidence": [
+    "Requested morluto/rea as research foundation",
+    "User states screenshot 2 is paid screen recording software"
+  ],
+  "screenshot_2": {
+    "available": false,
+    "ui_observations": [],
+    "unknown": [
+      "exact product/version",
+      "RE ENGINE meaning",
+      "layout and labels",
+      "behavior and zoom rules",
+      "audio, camera and export requirements"
+    ]
+  },
+  "external_reference": "https://screen.studio/ (public product documentation; identity with screenshot 2 is unverified)",
+  "preflight": {
+    "existing_workspace_files": "None; only empty work/ and outputs/ directories",
+    "saved_codex_projects": 0,
+    "destination_creation": "Aborted if destination already existed"
+  },
+  "codex_sidebar_registration": "Not completed: available app tools can list/move projects but do not create local projects"
+}

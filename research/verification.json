@@ -1,0 +1,82 @@
+{
+  "checked_on": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "node": "v24.19.0",
+  "platform": "win32 x64",
+  "source_sha256": {
+    "studio/server.mjs": "6ee4c2bae1738bf68507882de5e2e121bba56d53aacabec74e96bcca6f680af1",
+    "studio/public/app.mjs": "be569002058645b57866f9425bde31e88d6ea8c22db1d99c1a13627f0d23014a",
+    "studio/public/model.mjs": "9feef202a6390a5820e30931a5937ec27e0d0a5f4c1b26245da00fc350849edf",
+    "studio/public/render.mjs": "17d6f1aa68c7063085c105664ca9f2cc8a660c1af4948495c4b34df1600f1b9d",
+    "studio/public/media.mjs": "bae52c303140ba7b02c31e00fd24565927436a27c28ab17dd7e69d60b8213d5c",
+    "studio/public/index.html": "ef491a6970f7ace366b048aa1e3f05ef73172d6f1f73a8d2d0294179cf630b1a",
+    "studio/public/styles.css": "3d426ad54500a87dc2519bc6f2c097b61ccf2b1b00d413d420626db267792f7b",
+    "studio/tests/browser.mjs": "730bf1146f31753a52ee876519a5597308c8c4004098c71d425684c75c3917ea",
+    "studio/tests/model.test.mjs": "a0ac87ebabdc83d6c2348c8aa42184eb10eb6be1d13bf6d3ea367a5f912df87c",
+    "studio/tests/server.test.mjs": "e7a0711bde4227d83ff46283b1beab4ab916495f7f76d5f5c1a3ff9d65b8b46f"
+  },
+  "node_tests": {
+    "command": "node --test studio/tests/*.test.mjs",
+    "passed": 5,
+    "failed": 0
+  },
+  "syntax_checks": [
+    "node --check studio/public/app.mjs",
+    "node --check studio/public/media.mjs"
+  ],
+  "browser": {
+    "version": "Chromium 145.0.7632.6",
+    "runner": "Playwright 1.58.2",
+    "mode": "headless",
+    "passed_scenarios": [
+      "Demo render and playback",
+      "Trim, manual zoom, backgrounds, PNG output, project parameter round trip",
+      "Real encoded WebM: 1280x720, about 2 seconds, reimport and SHA-256 restore after rename",
+      "Invalid video and project preserve existing work",
+      "Synthetic capture, rejection, start/stop, source download, all capture tracks ended",
+      "Export cancellation restores editor controls",
+      "390px responsive layout without horizontal overflow"
+    ],
+    "page_errors": [],
+    "desktop_capture": "Not exercised: getDisplayMedia was replaced with a generated canvas stream in tests"
+  },
+  "rea_static_analysis": {
+    "runtime_version": "6.7.0",
+    "target": "studio/public (self-authored prototype, not the paid target application)",
+    "evidence_id": "ev_7795d43c7b32dbb957c5a9f5c31b9ced707b07e52e2f7cc6909551bf3791a5a1",
+    "evidence_sha256": "8025580fb532e89b7e4294599a3609ca7e0a7383ab54d3befc6aba7fa00b111e",
+    "subject_sha256": "743227df59f9f2beca1167192eb695d1f02b1300054b3f822b1d88592de4b578",
+    "statistics": {
+      "relevant_files": 5,
+      "nested_asar_containers": 0,
+      "text_bytes_read": 33686,
+      "invalid_utf8_files": 0,
+      "parsed_javascript_files": 4,
+      "skipped_javascript_files": 0,
+      "visited_ast_nodes": 5236,
+      "findings": 42,
+      "modules": 0,
+      "parse_failures": 0
+    },
+    "wall_ms": 4382,
+    "limitations": [
+      "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+      "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+      "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+      "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+      "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+      "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+    ],
+    "full_evidence": "../studio/.local/evidence/rea-prototype-evidence.json"
+  },
+  "visual_inspection": "Desktop screenshot reviewed; responsive dimensions asserted by browser test",
+  "not_verified": [
+    "Target software behavior or visual fidelity (screenshot missing)",
+    "OS screen/window picker and real desktop capture",
+    "Audio and camera (not implemented)",
+    "MP4/GIF (not implemented)",
+    "Full REA source build and native engines",
+    "Long recording, large input or 4K performance",
+    "Other browsers, machines, and desktop packaging"
+  ]
+}
