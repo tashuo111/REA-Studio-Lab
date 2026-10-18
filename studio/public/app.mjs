@@ -1,4 +1,4 @@
-import { BACKGROUNDS, createProject, parseProject, clamp, cropAt, frameRect, sameSource, formatTime, zoomAt } from './model.mjs';
+import { BACKGROUNDS, OUTPUT_PRESETS, MAX_MEDIA_BYTES, captureBitrate, createProject, parseProject, clamp, cropAt, frameRect, sameSource, formatTime, zoomAt } from './model.mjs';
 import { paintDemo, render } from './render.mjs';
 import { webmType, openVideo, closeVideo, seekVideo, download } from './media.mjs';
 
@@ -32,6 +32,15 @@ function draw() {
   $('zoom-state').textContent = `${zoomAt(project.zoom, time).toFixed(2)}×`;
 }
 function syncControls() {
+  const output = OUTPUT_PRESETS[project.output.resolution];
+  if (canvas.width !== output.width || canvas.height !== output.height) { canvas.width = output.width; canvas.height = output.height; }
+  $('output-resolution').value = project.output.resolution;
+  $('output-badge').textContent = `16:9 · ${output.label}`;
+  $('export-format').textContent = `WebM · ${output.width} × ${output.height} · 30fps · 无音轨`;
+  const frame = frameRect(project.source, project.frame, output.width, output.height);
+  const zoomScale = project.zoom.enabled && project.zoom.end > project.trim.start && project.zoom.start < project.trim.end ? project.zoom.scale : 1;
+  const upscale = frame.width * zoomScale > project.source.width * 1.01 || frame.height * zoomScale > project.source.height * 1.01;
+  $('resolution-hint').textContent = `原片 ${project.source.width} × ${project.source.height}。${upscale ? '当前画面或缩放区间会放大输出，清晰度受原片限制。' : '当前画面可由原片分辨率覆盖。'}`;
   for (const [id, value] of Object.entries({ padding: project.frame.padding, radius: project.frame.radius, 'zoom-scale': project.zoom.scale, 'zoom-start': project.zoom.start, 'zoom-end': project.zoom.end, 'focus-x': project.zoom.x, 'focus-y': project.zoom.y, 'trim-start': project.trim.start, 'trim-end': project.trim.end })) $(id).value = Math.round(value * 1000) / 1000;
   $('zoom-enabled').checked = project.zoom.enabled;
   for (const id of ['trim-start', 'trim-end', 'zoom-start', 'zoom-end', 'scrub']) $(id).max = project.source.duration;
@@ -91,12 +100,14 @@ for (const [id, section, key] of [['padding','frame','padding'],['radius','frame
   element.addEventListener(element.type === 'range' ? 'input' : 'change', () => edit(section, key, element.valueAsNumber));
 }
 $('zoom-enabled').addEventListener('change', event => edit('zoom', 'enabled', event.target.checked));
+$('output-resolution').replaceChildren(...Object.entries(OUTPUT_PRESETS).map(([value, preset]) => new Option(`${preset.label} · ${preset.width} × ${preset.height}`, value)));
+$('output-resolution').addEventListener('change', event => edit('output', 'resolution', event.target.value));
 document.querySelectorAll('[data-background]').forEach(button => button.addEventListener('click', () => { if (Object.hasOwn(BACKGROUNDS, button.dataset.background)) edit('frame', 'background', button.dataset.background); }));
 canvas.addEventListener('click', event => {
   if (busy) return;
   const bounds = canvas.getBoundingClientRect();
   const px = (event.clientX - bounds.left) * canvas.width / bounds.width, py = (event.clientY - bounds.top) * canvas.height / bounds.height;
-  const r = frameRect(project.source, project.frame), crop = cropAt(project.source, project.zoom, time);
+  const r = frameRect(project.source, project.frame, canvas.width, canvas.height), crop = cropAt(project.source, project.zoom, time);
   if (px < r.x || px > r.x + r.width || py < r.y || py > r.y + r.height) return;
   project.zoom.x = clamp((crop.x + (px - r.x) / r.width * crop.width) / project.source.width, 0, 1);
   project.zoom.y = clamp((crop.y + (py - r.y) / r.height * crop.height) / project.source.height, 0, 1);
@@ -106,12 +117,12 @@ $('scrub').addEventListener('input', event => seek(Number(event.target.value)).c
 action('play', () => playing ? pause() : play());
 action('restart', () => seek(project.trim.start));
 action('trim-end-seek', () => seek(project.trim.end));
-action('demo', () => { pause(); closeVideo(media); media = null; project = createProject(); time = 0; syncControls(); status('已加载生成的示例动画'); });
+action('demo', () => { pause(); closeVideo(media); media = null; project = createProject(undefined, project.output.resolution); time = 0; syncControls(); status('已加载生成的示例动画'); });
 action('import-video', () => $('video-input').click());
 action('download-source', () => { if (media) download(media.file, media.file.name); });
 
 function replaceMedia(next) {
-  pause(); closeVideo(media); media = next; project = createProject(next.source); time = 0; syncControls();
+  pause(); closeVideo(media); media = next; project = createProject(next.source, project.output.resolution); time = 0; syncControls();
 }
 $('video-input').addEventListener('change', async event => {
   const file = event.target.files[0]; event.target.value = ''; if (!file) return;
@@ -147,12 +158,13 @@ action('record', async () => {
   let stream, interval, recorder, captureToken;
   try {
     if (desktop) captureToken = await desktop.prepareCapture();
-    stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: false });
-    recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 6000000 });
+    stream = await navigator.mediaDevices.getDisplayMedia({ video: { width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 30, max: 30 } }, audio: false });
+    const capture = stream.getVideoTracks()[0].getSettings();
+    recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: captureBitrate(capture.width, capture.height) });
     const chunks = []; let bytes = 0; const started = performance.now();
     recording = { stream, recorder, stop: () => { if (recorder.state !== 'inactive') recorder.stop(); } };
     const done = new Promise((resolve, reject) => {
-      recorder.addEventListener('dataavailable', event => { if (event.data.size) { chunks.push(event.data); bytes += event.data.size; if (bytes >= 256 * 1024 * 1024) recording?.stop(); } });
+      recorder.addEventListener('dataavailable', event => { if (event.data.size) { chunks.push(event.data); bytes += event.data.size; if (bytes >= MAX_MEDIA_BYTES) recording?.stop(); } });
       recorder.addEventListener('stop', () => resolve(new Blob(chunks, { type: mimeType })), { once: true });
       recorder.addEventListener('error', () => reject(new Error('屏幕录制失败，请重试')), { once: true });
     });
@@ -160,7 +172,7 @@ action('record', async () => {
     recorder.start(500); lock('recording');
     interval = setInterval(() => {
       const elapsed = (performance.now() - started) / 1000;
-      status(`正在录屏 ${formatTime(elapsed)} · 点击结束录屏后进入编辑`);
+      status(`正在录屏 ${formatTime(elapsed)}${capture.width && capture.height ? ` · ${capture.width} × ${capture.height}` : ''} · 点击结束录屏后进入编辑`);
       if (elapsed >= 120) recording?.stop();
     }, 300);
     const blob = await done; const elapsed = (performance.now() - started) / 1000;
@@ -168,7 +180,7 @@ action('record', async () => {
     if (!blob.size || elapsed < 0.1) throw new Error('录制时间太短，请重新录制');
     lock('loading'); status('正在整理录屏…');
     replaceMedia(await openVideo(new File([blob], `recording-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`, { type: mimeType }), elapsed));
-    status('录屏已载入 · 请保存原片，随后可以裁剪和导出');
+    status(bytes >= MAX_MEDIA_BYTES ? '录屏已载入 · 达到 256 MiB 缓存上限，已自动结束并保留原片' : '录屏已载入 · 请保存原片，随后可以裁剪和导出');
   } catch (error) {
     const outcome = desktop && captureToken ? await desktop.captureOutcome(captureToken).catch(() => null) : null;
     const cancelled = outcome?.state === 'cancelled' || error.name === 'NotAllowedError';
@@ -183,16 +195,22 @@ action('stop-record', () => recording?.stop());
 action('export-video', async () => {
   if (project.trim.end - project.trim.start > 120) throw new Error('原型单次导出最长 2 分钟，请先缩短裁剪区间');
   const mimeType = webmType(); const previousTime = time;
+  const output = OUTPUT_PRESETS[project.output.resolution];
   pause(); lock('exporting');
   let stream, recorder;
   try {
     await seek(project.trim.start); draw();
     if (document.hidden) throw new Error('请保持页面在前台后重新导出');
-    stream = canvas.captureStream(30); recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 6000000 });
+    stream = canvas.captureStream(30); recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: output.bitrate });
     exporter = { recorder, stream, cancelled: false, reason: '已取消导出' };
-    const run = exporter, chunks = [];
+    const run = exporter, chunks = []; let bytes = 0;
     const done = new Promise((resolve, reject) => {
-      recorder.addEventListener('dataavailable', event => { if (event.data.size) chunks.push(event.data); });
+      recorder.addEventListener('dataavailable', event => {
+        if (!event.data.size || run.cancelled) return;
+        bytes += event.data.size;
+        if (bytes > MAX_MEDIA_BYTES) { chunks.length = 0; cancelExport('导出超过 256 MiB 缓存上限，请缩短裁剪片段或降低分辨率后重试。'); }
+        else chunks.push(event.data);
+      });
       recorder.addEventListener('stop', () => resolve(new Blob(chunks, { type: mimeType })), { once: true });
       recorder.addEventListener('error', () => reject(new Error('视频导出失败')), { once: true });
     });
@@ -202,7 +220,7 @@ action('export-video', async () => {
     if (run.cancelled) status(run.reason);
     else {
       if (!blob.size) throw new Error('导出的视频为空');
-      download(blob, 'rea-studio-export.webm'); status(desktop ? '视频已生成 · 请选择 WebM 保存位置' : 'WebM 已导出 · 1280 × 720 · 无音轨');
+      download(blob, 'rea-studio-export.webm'); status(desktop ? '视频已生成 · 请选择 WebM 保存位置' : `WebM 已导出 · ${output.width} × ${output.height} · 无音轨`);
     }
   } finally {
     pause(); if (recorder?.state === 'recording') recorder.stop();
@@ -221,7 +239,7 @@ window.addEventListener('pagehide', () => {
   cancelExport('页面已关闭'); recording?.stop(); recording?.stream.getTracks().forEach(track => track.stop()); closeVideo(media);
 });
 document.addEventListener('keydown', event => {
-  if (event.code === 'Space' && !busy && !['INPUT', 'BUTTON', 'SUMMARY'].includes(document.activeElement.tagName)) {
+  if (event.code === 'Space' && !busy && !['INPUT', 'SELECT', 'BUTTON', 'SUMMARY'].includes(document.activeElement.tagName)) {
     event.preventDefault(); (playing ? Promise.resolve(pause()) : play()).catch(error => status(error.message, true));
   }
 });

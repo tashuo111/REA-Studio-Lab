@@ -5,6 +5,7 @@ import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
+const version = require('../package.json').version;
 const { _electron } = await import(pathToFileURL(resolve(process.env.STUDIO_PLAYWRIGHT_MODULE || 'studio/.local/tooling/node_modules/playwright/index.mjs')).href);
 const output = resolve(process.env.STUDIO_DESKTOP_TEST_OUTPUT || 'studio/.local/desktop-tests');
 await mkdir(output, { recursive: true });
@@ -12,7 +13,7 @@ const executablePath = process.env.STUDIO_DESKTOP_EXE || require('../.local/tool
 const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE;
 const application = await _electron.launch({ executablePath, args: process.env.STUDIO_DESKTOP_EXE ? [] : [resolve('studio/desktop/main.cjs')], env, timeout: 30000 });
 application.process().stderr?.on('data', chunk => { if (process.env.STUDIO_CAPTURE_DEBUG === '1') process.stderr.write(chunk); });
-const checks = [], errors = [];
+const checks = [], errors = [], resolutionResults = [];
 const page = await application.firstWindow();
 page.on('pageerror', error => errors.push(error.message));
 page.setDefaultTimeout(15000);
@@ -43,7 +44,7 @@ async function openPicker() {
 }
 try {
   await page.waitForURL('studio://app/');
-  await page.locator('.badge').filter({ hasText: '桌面版 0.2.0' }).waitFor();
+  await page.locator('.badge').filter({ hasText: `桌面版 ${version}` }).waitFor();
   assert.deepEqual(await page.evaluate(() => ({ secure: isSecureContext, node: typeof require, process: typeof process, pickerApi: typeof capturePicker })), { secure: true, node: 'undefined', process: 'undefined', pickerApi: 'undefined' });
   assert.equal(await page.evaluate(async () => (await fetch('/desktop/main.cjs')).status), 404);
   assert.equal(await page.evaluate(async () => (await fetch('/styles.css', { method: 'POST' })).status), 405);
@@ -72,6 +73,40 @@ try {
   assert.equal(decoded.source.width, 1280); assert.equal(decoded.source.height, 720);
   assert.ok(Math.abs(decoded.source.duration - 2) < 0.5);
   checks.push('Native download handling saves JSON/PNG/WebM; edited 2-second WebM decodes at 1280x720');
+  for (const [resolution, width, height] of [['1080p', 1920, 1080], ['1440p', 2560, 1440], ['2160p', 3840, 2160]]) {
+    await page.locator('#demo').click();
+    await page.locator('#output-resolution').selectOption(resolution);
+    await change('trim-end', 1.5);
+    await page.locator('#padding').evaluate(element => { element.value = '0'; element.dispatchEvent(new Event('input', { bubbles: true })); });
+    const bounds = await page.locator('#preview').boundingBox();
+    await page.locator('#preview').click({ position: { x: bounds.width * 0.75, y: bounds.height * 0.25 } });
+    const paramsPath = await save('save-project', 'rea-studio-project.json');
+    const params = JSON.parse(await readFile(paramsPath, 'utf8'));
+    assert.equal(params.version, 2); assert.equal(params.output.resolution, resolution);
+    assert.ok(Math.abs(params.zoom.x - 0.75) < 0.005); assert.ok(Math.abs(params.zoom.y - 0.25) < 0.005);
+    await page.locator('#output-resolution').selectOption('720p');
+    await page.locator('#project-input').setInputFiles(paramsPath); await statusIncludes('参数已恢复');
+    assert.equal(await page.locator('#output-resolution').inputValue(), resolution);
+    const frame = await readFile(await save('export-frame', 'rea-studio-frame.png'));
+    assert.equal(frame.readUInt32BE(16), width); assert.equal(frame.readUInt32BE(20), height);
+    const started = performance.now();
+    const encoded = await save('export-video', 'rea-studio-export.webm');
+    const exportWallMs = Math.round(performance.now() - started);
+    await page.locator('#video-input').setInputFiles(encoded); await statusIncludes('视频已导入');
+    assert.equal(await page.locator('#output-resolution').inputValue(), resolution);
+    const highres = JSON.parse(await readFile(await save('save-project', 'rea-studio-project.json'), 'utf8'));
+    assert.equal(highres.source.width, width); assert.equal(highres.source.height, height);
+    assert.ok(Math.abs(highres.source.duration - 1.5) < 0.5, `${resolution} duration: ${highres.source.duration}`);
+    resolutionResults.push({ resolution, width, height, duration: highres.source.duration, bytes: (await stat(encoded)).size, exportWallMs, outputFile: encoded });
+    checks.push(`${resolution}: PNG and real decoded WebM ${width}x${height}; focus geometry and project restore; selected resolution survives import`);
+  }
+  await page.screenshot({ path: join(output, 'desktop-4k-preview.png'), fullPage: true });
+  await page.locator('#demo').click();
+  const legacy = { ...saved, version: 1 }; delete legacy.output;
+  await page.locator('#project-input').setInputFiles({ name: 'legacy-v1.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) });
+  await statusIncludes('参数已恢复');
+  assert.equal(await page.locator('#output-resolution').inputValue(), '720p');
+  checks.push('Version 1 project migrates to 720p with its original edits');
   const cancelledPicker = await openPicker();
   await cancelledPicker.locator('#cancel').click();
   await statusIncludes('已取消屏幕选择');
@@ -123,7 +158,7 @@ try {
   checks.push('Closing picker cancels request; export cancellation releases controls');
   assert.deepEqual(errors, []);
   const versions = await application.evaluate(() => ({ electron: process.versions.electron, chrome: process.versions.chrome, node: process.versions.node }));
-  const result = { testedAt: new Date().toISOString(), executablePath, versions, checks, pageErrors: errors, limitations: ['System Save As UI bypassed only by test harness setSavePath; production uses Save As', 'Actual capture limited to a test-owned application window; full-screen capture and long recordings not tested'] };
+  const result = { testedAt: new Date().toISOString(), executablePath, versions, checks, resolutionResults, pageErrors: errors, limitations: ['System Save As UI bypassed only by test harness setSavePath; production uses Save As', 'Actual capture limited to a test-owned application window; full-screen capture and long recordings not tested', 'High-resolution encoding uses a generated 720p demo as the source: verifies output pixels, not recovered 4K source detail', '4K checks use short clips; sustained frame rate, CPU and peak memory have not been measured'] };
   await writeFile(join(output, 'results.json'), JSON.stringify(result, null, 2) + '\n');
   console.log(JSON.stringify(result, null, 2));
 } catch (error) {

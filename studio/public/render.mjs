@@ -42,8 +42,10 @@ export function render(canvas, source, project, time) {
   c.fillStyle = gradient; c.fillRect(0, 0, canvas.width, canvas.height);
   const r = frameRect(project.source, project.frame, canvas.width, canvas.height);
   const crop = cropAt(project.source, project.zoom, time);
-  c.save(); c.shadowColor = '#00000055'; c.shadowBlur = 38; c.shadowOffsetY = 14; c.fillStyle = '#fff';
-  c.beginPath(); c.roundRect(r.x, r.y, r.width, r.height, project.frame.radius); c.fill(); c.restore();
-  c.save(); c.beginPath(); c.roundRect(r.x, r.y, r.width, r.height, project.frame.radius); c.clip();
+  const unit = canvas.width / 1280, radius = project.frame.radius * unit;
+  c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
+  c.save(); c.shadowColor = '#00000055'; c.shadowBlur = 38 * unit; c.shadowOffsetY = 14 * unit; c.fillStyle = '#fff';
+  c.beginPath(); c.roundRect(r.x, r.y, r.width, r.height, radius); c.fill(); c.restore();
+  c.save(); c.beginPath(); c.roundRect(r.x, r.y, r.width, r.height, radius); c.clip();
   c.drawImage(source, crop.x, crop.y, crop.width, crop.height, r.x, r.y, r.width, r.height); c.restore();
 }

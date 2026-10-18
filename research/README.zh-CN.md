@@ -69,3 +69,5 @@ node research/verify-rea.mjs
 M0 的浏览器捕获无法提供操作系统全局点击事件；自制示例中的移动指针是绘制动画。它没有实现对用户鼠标的自动跟随。
 
 原始 0.1 浏览器基线的验证快照见 [verification.json](verification.json)，其中源码摘要属于当时的版本。0.2 桌面化后的实际验证与源码摘要另见 [desktop-verification.json](desktop-verification.json)。
+
+0.3 根据用户的高分辨率请求补充 1080p、2K / QHD（2560 × 1440）和 4K / UHD（3840 × 2160）预览及输出。录制请求最高 4K 理想尺寸，实际以用户选择的屏幕或窗口为准；不能把放大输出等同于原生 4K 细节。参数迁移、真实编码文件及运行边界见 [resolution-verification.json](resolution-verification.json)。

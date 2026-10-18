@@ -26,7 +26,7 @@ export function createAppServer() {
     catch { response.writeHead(400).end(); return; }
     if (path === '/health') {
       response.writeHead(200, { 'Content-Type': 'application/json' });
-      response.end(request.method === 'HEAD' ? undefined : JSON.stringify({ app: 'rea-studio-lab', version: '0.2.0' }));
+      response.end(request.method === 'HEAD' ? undefined : JSON.stringify({ app: 'rea-studio-lab', version: '0.3.0' }));
       return;
     }
     const route = routes.get(path);

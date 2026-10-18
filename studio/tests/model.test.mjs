@@ -1,12 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createProject, parseProject, cropAt, zoomAt, frameRect, sameSource } from '../public/model.mjs';
+import { createProject, parseProject, cropAt, zoomAt, frameRect, sameSource, OUTPUT_PRESETS } from '../public/model.mjs';
 
 test('saved project round trips and rejects malformed/unbounded metadata', () => {
   const p = createProject();
   assert.deepEqual(parseProject(JSON.parse(JSON.stringify(p))), p);
-  for (const edit of [q => q.trim.end = 0, q => q.zoom.x = NaN, q => q.frame.padding = -1, q => q.version = 2, q => q.source.duration = Infinity, q => q.zoom.end = q.zoom.start, q => q.frame.background = '__proto__']) {
+  for (const edit of [q => q.trim.end = 0, q => q.zoom.x = NaN, q => q.frame.padding = -1, q => q.version = 99, q => q.source.duration = Infinity, q => q.zoom.end = q.zoom.start, q => q.frame.background = '__proto__']) {
     const bad = structuredClone(p); edit(bad); assert.throws(() => parseProject(bad));
+  }
+});
+
+test('legacy parameters migrate to 720p; output presets round trip without allowing arbitrary canvas sizes', () => {
+  const legacy = createProject(); legacy.version = 1; delete legacy.output;
+  const migrated = parseProject(legacy);
+  assert.equal(migrated.version, 2); assert.equal(migrated.output.resolution, '720p');
+  for (const resolution of Object.keys(OUTPUT_PRESETS)) assert.equal(parseProject(createProject(undefined, resolution)).output.resolution, resolution);
+  for (const output of [null, {}, { resolution: '8k' }, { resolution: '__proto__' }, { resolution: 2160 }]) assert.throws(() => parseProject({ ...createProject(), output }));
+  const p = createProject(), base = frameRect(p.source, p.frame);
+  for (const preset of Object.values(OUTPUT_PRESETS)) {
+    const rect = frameRect(p.source, p.frame, preset.width, preset.height);
+    for (const key of ['x', 'y', 'width', 'height']) assert.ok(Math.abs(rect[key] / (preset.width / 1280) - base[key]) < 1e-8);
   }
 });
 

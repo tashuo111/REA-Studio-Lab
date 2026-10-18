@@ -5,14 +5,22 @@ export const BACKGROUNDS = {
   graphite: ['#191f28', '#333e51', '#546174'],
 };
 export const DEMO_SOURCE = { kind: 'demo', name: '产品演示 · 示例素材', size: 0, lastModified: 0, sha256: null, width: 1280, height: 720, duration: 12 };
+export const OUTPUT_PRESETS = {
+  '720p': { label: '720p', width: 1280, height: 720, bitrate: 6000000 },
+  '1080p': { label: '1080p', width: 1920, height: 1080, bitrate: 12000000 },
+  '1440p': { label: '2K / QHD', width: 2560, height: 1440, bitrate: 24000000 },
+  '2160p': { label: '4K / UHD', width: 3840, height: 2160, bitrate: 40000000 },
+};
+export const MAX_MEDIA_BYTES = 256 * 1024 * 1024;
 export const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 
-export function createProject(source = DEMO_SOURCE) {
+export function createProject(source = DEMO_SOURCE, resolution = '720p') {
   return {
-    schema: 'rea-studio-project', version: 1, source: { ...source },
+    schema: 'rea-studio-project', version: 2, source: { ...source },
     trim: { start: 0, end: source.duration },
     zoom: { enabled: true, start: source.duration * 0.2, end: source.duration * 0.7, scale: 1.7, x: 0.65, y: 0.45 },
     frame: { padding: 56, radius: 20, background: 'aurora' },
+    output: { resolution },
   };
 }
 
@@ -26,8 +34,11 @@ function number(value, low, high, name) {
 // Parse at the persistence boundary; never let imported values reach canvas unchecked.
 export function parseProject(value) {
   object(value, '项目');
-  if (value.schema !== 'rea-studio-project' || value.version !== 1) throw new Error('不支持的项目格式或版本');
+  if (value.schema !== 'rea-studio-project' || ![1, 2].includes(value.version)) throw new Error('不支持的项目格式或版本');
   const { source, trim, zoom, frame } = value;
+  const output = value.version === 1 ? { resolution: '720p' } : value.output;
+  object(output, '导出设置');
+  if (typeof output.resolution !== 'string' || !Object.hasOwn(OUTPUT_PRESETS, output.resolution)) throw new Error('导出分辨率无效');
   for (const [name, item] of Object.entries({ source, trim, zoom, frame })) object(item, name);
   if (!['demo', 'video'].includes(source.kind)) throw new Error('素材类型无效');
   if (typeof source.name !== 'string' || !source.name.trim() || source.name.length > 300) throw new Error('素材名称无效');
@@ -47,12 +58,18 @@ export function parseProject(value) {
   if (!Object.hasOwn(BACKGROUNDS, frame.background)) throw new Error('背景无效');
   // Explicit projection discards unknown keys and never merges untrusted object properties.
   return {
-    schema: value.schema, version: 1,
+    schema: value.schema, version: 2,
     source: { kind: source.kind, name: source.name, duration: source.duration, width: source.width, height: source.height, size: source.size, lastModified: source.lastModified, sha256: source.sha256 },
     trim: { start: trim.start, end: trim.end },
     zoom: { enabled: zoom.enabled, start: zoom.start, end: zoom.end, scale: zoom.scale, x: zoom.x, y: zoom.y },
     frame: { padding: frame.padding, radius: frame.radius, background: frame.background },
+    output: { resolution: output.resolution },
   };
+}
+
+export function captureBitrate(width = 3840, height = 2160) {
+  const pixels = width * height;
+  return Object.values(OUTPUT_PRESETS).find(preset => pixels <= preset.width * preset.height)?.bitrate ?? OUTPUT_PRESETS['2160p'].bitrate;
 }
 
 export function zoomAt(zoom, time) {

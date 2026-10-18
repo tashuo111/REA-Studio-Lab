@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('studioDesktop', {
-  version: '0.2.0',
+  version: process.argv.find(value => value.startsWith('--studio-version='))?.slice('--studio-version='.length) || 'development',
   prepareCapture: () => ipcRenderer.invoke('studio:capture-prepare'),
   captureOutcome: token => ipcRenderer.invoke('studio:capture-outcome', token),
   setActivity: kind => { if ([null, 'choosing', 'recording', 'loading', 'exporting'].includes(kind)) ipcRenderer.send('studio:activity', kind); },

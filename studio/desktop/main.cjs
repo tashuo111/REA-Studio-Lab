@@ -5,7 +5,7 @@ const path = require('node:path');
 const APP_URL = 'studio://app/';
 const PICKER_URL = 'studio://app/picker.html';
 const UPSTREAM_URL = 'https://github.com/morluto/rea';
-const VERSION = '0.2.0';
+const VERSION = require('../package.json').version;
 const root = path.join(__dirname, '..');
 const routes = new Map([
   ['/', ['public/index.html', 'text/html; charset=utf-8']],
@@ -146,7 +146,7 @@ app.whenReady().then(async () => {
   mainWindow = new BrowserWindow({
     width: 1460, height: 1000, minWidth: 1000, minHeight: 700,
     title: `REA Studio Lab ${VERSION}`, backgroundColor: '#101719', show: false, autoHideMenuBar: true,
-    webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false },
+    webPreferences: { preload: path.join(__dirname, 'preload.cjs'), additionalArguments: [`--studio-version=${VERSION}`], contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false },
   });
   secureWindow(mainWindow, true);
   mainWindow.once('ready-to-show', () => mainWindow.show());

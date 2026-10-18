@@ -6,6 +6,7 @@
 
 - `server.mjs`：只提供白名单中的静态资源和健康检查；不接收视频上传，也不开放任意文件或命令执行端点。
 - `public/model.mjs`：项目参数验证、裁剪边界、平滑缩放、源画面坐标和 SHA-256 素材身份匹配。
+- 0.3 的 `output.resolution` 由该模型的 720p / 1080p / 1440p / 2160p 白名单统一管理；参数格式升级为版本 2，版本 1 在读取时迁移到 720p。实际 Canvas 尺寸、PNG、视频、倍率相关画面几何和导出提示均使用同一设置。
 - `public/render.mjs`：Canvas 合成和自制示例动画；预览、PNG 和 WebM 共用合成逻辑。
 - `public/media.mjs`：本地视频加载、时长解析、内容指纹、资源回收和下载。
 - `public/app.mjs`：浏览器捕获、播放器、导出和编辑器状态。
@@ -55,12 +56,16 @@ node studio/desktop/start.mjs
 ```powershell
 node studio/tests/desktop.mjs
 # 验证打包后的相同程序：
-$env:STUDIO_DESKTOP_EXE = 'C:\完整路径\REA-Studio-Lab-Windows-0.2.0\REA Studio Lab.exe'
+$env:STUDIO_DESKTOP_EXE = 'C:\完整路径\REA-Studio-Lab-Windows-0.3.0\REA Studio Lab.exe'
 $env:STUDIO_DESKTOP_TEST_OUTPUT = 'C:\新的测试产物目录'
 node studio/tests/desktop.mjs
 ```
 
 该测试用真实 Windows 捕获录制测试自己创建的窗口，不录制用户的其他窗口。测试会把下载保存到指定测试目录，跳过系统另存为对话框；产品中仍由用户选保存位置。全屏、其他机器、长视频及音频不在本轮验证范围。
+
+0.3 的桌面测试还对 1080p、1440p、2160p 实际编码短 WebM 并重新导入检查宽、高、时长，读取 PNG IHDR 检查尺寸，并验证高分辨率下点击缩放焦点、参数保存恢复和版本 1 参数迁移。它使用 720p 生成素材，因此验证的是输出尺寸和流程，不代表从低分辨率恢复了 4K 细节。各尺寸的输出字节数和测试导出墙钟时间记录在结果中；CPU、峰值内存和持续帧率尚未测量。
+
+录屏使用理想尺寸 3840 × 2160 和最大 30fps，由浏览器对用户选中的来源应用；实际码率按视频轨道返回的宽、高选择，导出码率随预设提高（6 / 12 / 24 / 40 Mbps，编码器可调整实际值）。参考 [getDisplayMedia 约束](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia)、[轨道实际设置](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/getSettings)、[MediaRecorder 编码参数](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/MediaRecorder)。
 
 桌面 API 依据：[Electron desktopCapturer](https://www.electronjs.org/docs/latest/api/desktop-capturer)、[Session 捕获处理器](https://www.electronjs.org/docs/latest/api/session#sessetdisplaymediarequesthandlerhandler-opts)、[自定义协议](https://www.electronjs.org/docs/latest/api/protocol)、[DownloadItem](https://www.electronjs.org/docs/latest/api/download-item)、[安全指南](https://www.electronjs.org/docs/latest/tutorial/security)。Windows 显示本应用的来源选择器，未把仅 macOS 支持的实验性系统选择器当作 Windows 能力。
 

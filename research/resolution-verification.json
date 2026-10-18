@@ -1,0 +1,142 @@
+{
+  "version": "0.3.0",
+  "checked_at": "2026-10-18T12:00:17.776Z",
+  "platform": "Windows x64",
+  "predecessor_commit": "926d37951",
+  "branch": "codex/screen-studio-mvp",
+  "upstream_preserved_at": "c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96",
+  "source_sha256": {
+    "studio/desktop/build.mjs": "5ecdd401305d5ead0ec90a4f1c7efeb22e830a1d8ba3720d00727f90f33ce31e",
+    "studio/desktop/main.cjs": "24b2f839612915875752de5befdfc350ffe82292ae4aecce6c41c1f712044f55",
+    "studio/desktop/picker-preload.cjs": "2db3abbc8ed85b929a7b8f28aa57487ff31913ce9f222e91ed6a3fb8750bada5",
+    "studio/desktop/picker.css": "34363a984cff6630860e5f4e1b43fcbbac48bdc8ca4b7515d66ef3750aea4559",
+    "studio/desktop/picker.html": "878f3490c2d6f8993e61b20b36599ba1f26e73c84e59655a7ef2439b0286e1eb",
+    "studio/desktop/picker.js": "43a3952457dc939712c6a1e052bc70847eece992be8a7d198629617f911e1ad2",
+    "studio/desktop/preload.cjs": "a4c98577a7a821679fd215e5b8a87a9cbfa68513d6672a1097299c4cf39884cd",
+    "studio/desktop/start.mjs": "e2727a3f1ddcd025be3a45ed71f7746b2bfe87e36ba964805b88d2ac0cb6327f",
+    "studio/package.json": "dcbf13158b3ebf884393dd134843b2bbefb146f449a5d6b285957b53941fcf57",
+    "studio/public/app.mjs": "412b3eb538de98efe12318a4795e28bb8413e5ebd23636d46a71e3f5fbd4e0f9",
+    "studio/public/index.html": "7a61ef1d8193a2667d5f4c6ed199fc6d39ec94108b7a28e57d9e3f02112c4042",
+    "studio/public/media.mjs": "bae52c303140ba7b02c31e00fd24565927436a27c28ab17dd7e69d60b8213d5c",
+    "studio/public/model.mjs": "e99af79832b89cec689285d080a3f57965094ef7ec0e5c01179f964a15211939",
+    "studio/public/render.mjs": "ae531eb3e268036aa52d9eecd753948ac84d476422f9ed54a495cc50703f7fb3",
+    "studio/public/styles.css": "f734a4f63cbf04f7361b5eb3d3cc8df48581ed2abc14e548c1b39921689b5908",
+    "studio/server.mjs": "aee17c75f6a7656d7bebc4df0efa3bcc08019e0485e7be8303eeb452faa3448d",
+    "studio/tests/browser.mjs": "730bf1146f31753a52ee876519a5597308c8c4004098c71d425684c75c3917ea",
+    "studio/tests/desktop.mjs": "718d58a925d49fd5e2f7a991bc619c4959a1dd7531fc034a34009ffb027f681e",
+    "studio/tests/model.test.mjs": "5199b5b7e7d5ea039087833c465c51d550698f0e3630ded482bea5296cea2f31",
+    "studio/tests/server.test.mjs": "e7a0711bde4227d83ff46283b1beab4ab916495f7f76d5f5c1a3ff9d65b8b46f"
+  },
+  "output_presets": {
+    "720p": [
+      1280,
+      720
+    ],
+    "1080p": [
+      1920,
+      1080
+    ],
+    "2K / QHD": [
+      2560,
+      1440
+    ],
+    "4K / UHD": [
+      3840,
+      2160
+    ]
+  },
+  "capture": "Requests ideal 3840x2160 and up to 30fps; actual source dimensions are respected and shown, without changing display settings",
+  "project_format": {
+    "current": 2,
+    "version_1_migration": "720p, preserving existing edits",
+    "output_selection_retained_on_new_media": true
+  },
+  "node_tests": {
+    "command": "node --test studio/tests/*.test.mjs",
+    "passed": 6,
+    "failed": 0
+  },
+  "browser_regression": {
+    "command": "node studio/tests/browser.mjs",
+    "chromium": "145.0.7632.6",
+    "scenarios_passed": 7,
+    "page_errors": []
+  },
+  "desktop_packaged": {
+    "testedAt": "2026-10-18T11:58:54.578Z",
+    "executablePath": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\REA-Studio-Lab-Windows-0.3.0\\REA Studio Lab.exe",
+    "versions": {
+      "electron": "44.9.0",
+      "chrome": "152.0.7977.167",
+      "node": "24.22.0"
+    },
+    "checks": [
+      "Standalone secure local protocol; renderer has no Node.js or picker IPC access; only listed assets served",
+      "Native download handling saves JSON/PNG/WebM; edited 2-second WebM decodes at 1280x720",
+      "1080p: PNG and real decoded WebM 1920x1080; focus geometry and project restore; selected resolution survives import",
+      "1440p: PNG and real decoded WebM 2560x1440; focus geometry and project restore; selected resolution survives import",
+      "2160p: PNG and real decoded WebM 3840x2160; focus geometry and project restore; selected resolution survives import",
+      "Version 1 project migrates to 720p with its original edits",
+      "Capture picker cancellation returns to the editor without starting capture",
+      "Real Windows window capture of test-owned fixture; stop, save, decode: 1180x696, 2.11 seconds",
+      "Closing picker cancels request; export cancellation releases controls"
+    ],
+    "resolutionResults": [
+      {
+        "resolution": "1080p",
+        "width": 1920,
+        "height": 1080,
+        "duration": 1.437,
+        "bytes": 246174,
+        "exportWallMs": 1663,
+        "outputFile": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\studio\\.local\\desktop-0.3.0-release-tests/1792324714167-rea-studio-export.webm"
+      },
+      {
+        "resolution": "1440p",
+        "width": 2560,
+        "height": 1440,
+        "duration": 1.403,
+        "bytes": 293443,
+        "exportWallMs": 1665,
+        "outputFile": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\studio\\.local\\desktop-0.3.0-release-tests/1792324716680-rea-studio-export.webm"
+      },
+      {
+        "resolution": "2160p",
+        "width": 3840,
+        "height": 2160,
+        "duration": 1.382,
+        "bytes": 501922,
+        "exportWallMs": 1672,
+        "outputFile": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\studio\\.local\\desktop-0.3.0-release-tests/1792324719469-rea-studio-export.webm"
+      }
+    ],
+    "pageErrors": [],
+    "limitations": [
+      "System Save As UI bypassed only by test harness setSavePath; production uses Save As",
+      "Actual capture limited to a test-owned application window; full-screen capture and long recordings not tested",
+      "High-resolution encoding uses a generated 720p demo as the source: verifies output pixels, not recovered 4K source detail",
+      "4K checks use short clips; sustained frame rate, CPU and peak memory have not been measured"
+    ]
+  },
+  "visual_inspection": "Reviewed desktop-4k-preview.png: resolution selector, 4K badge, source dimensions, timeline and controls are visible; frame geometry preserved.",
+  "release": {
+    "directory": "../REA-Studio-Lab-Windows-0.3.0",
+    "executable": "REA Studio Lab.exe",
+    "runtime_files_match_source": true,
+    "archive": {
+      "filename": "REA-Studio-Lab-Windows-0.3.0.zip",
+      "bytes": 163303841,
+      "sha256": "66229a6599e680598109a083bc4321758324cf39a611b6bfee01536efb474622"
+    }
+  },
+  "measured_scope": "Resolution results include short generated-video file sizes and end-to-end export wall time during validation; this is not a sustained-performance benchmark.",
+  "limitations": [
+    "Real-time MediaRecorder output timing is approximate; 1.5-second test ranges decoded as 1.437, 1.403 and 1.382 seconds respectively. No frame-accurate export claim.",
+    "The source for high-resolution export checks is the 720p generated demo. Output dimensions are verified, but upscaling cannot add original source detail.",
+    "Native 2K/4K screen capture, long 4K recording, sustained frame rate, CPU and peak process memory are not measured.",
+    "Recording and export retain the two-minute limit and a 256 MiB encoded-chunk budget. Stop/cancel behavior is implemented; the full-budget stress case is not exercised.",
+    "No audio, camera, MP4, multiple zoom regions or automatic pointer tracking.",
+    "Native Save As was exercised in 0.2; 0.3 export tests direct files to a test folder through the same download handler.",
+    "Older verification files remain their historical version snapshots."
+  ]
+}
