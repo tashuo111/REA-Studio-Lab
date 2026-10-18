@@ -1,0 +1,8 @@
+import { createRequire } from 'node:module';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const require = createRequire(import.meta.url);
+const electron = require('../.local/tooling/node_modules/electron');
+const child = spawn(electron, [fileURLToPath(new URL('./main.cjs', import.meta.url))], { stdio: 'inherit', windowsHide: true });
+child.on('error', error => { console.error(error.message); process.exitCode = 1; });
+child.on('exit', code => { process.exitCode = code ?? 1; });

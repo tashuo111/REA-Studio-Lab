@@ -3,6 +3,7 @@ import { paintDemo, render } from './render.mjs';
 import { webmType, openVideo, closeVideo, seekVideo, download } from './media.mjs';
 
 const $ = id => document.getElementById(id);
+const desktop = window.studioDesktop;
 const canvas = $('preview');
 const demoCanvas = document.createElement('canvas'); demoCanvas.width = 1280; demoCanvas.height = 720;
 let project = createProject(), media = null, time = 0, playing = false, playOrigin = 0, playStart = 0;
@@ -14,6 +15,7 @@ function status(message, error = false) {
 }
 function lock(kind) {
   busy = kind;
+  desktop?.setActivity(kind);
   document.querySelectorAll('[data-lock]').forEach(element => element.disabled = Boolean(kind));
   $('record').hidden = kind === 'recording'; $('stop-record').hidden = kind !== 'recording';
   $('cancel-export').hidden = kind !== 'exporting';
@@ -135,15 +137,16 @@ $('project-input').addEventListener('change', async event => {
 action('export-frame', async () => {
   draw(); const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
   if (!blob) throw new Error('当前帧导出失败');
-  download(blob, 'rea-studio-frame.png'); status('当前帧已导出为 PNG');
+  download(blob, 'rea-studio-frame.png'); status(desktop ? '请选择 PNG 保存位置' : '当前帧已导出为 PNG');
 });
 
 action('record', async () => {
   if (!navigator.mediaDevices?.getDisplayMedia) throw new Error('当前浏览器不支持屏幕捕获，请在 Chrome 或 Edge 中打开本地地址');
   const mimeType = webmType();
-  pause(); lock('choosing'); status('请在浏览器弹出的选择器中选择录制来源');
-  let stream, interval, recorder;
+  pause(); lock('choosing'); status(desktop ? '请在弹出的窗口中选择录制来源，并点击开始录制' : '请在浏览器弹出的选择器中选择录制来源');
+  let stream, interval, recorder, captureToken;
   try {
+    if (desktop) captureToken = await desktop.prepareCapture();
     stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: false });
     recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 6000000 });
     const chunks = []; let bytes = 0; const started = performance.now();
@@ -167,7 +170,9 @@ action('record', async () => {
     replaceMedia(await openVideo(new File([blob], `recording-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`, { type: mimeType }), elapsed));
     status('录屏已载入 · 请保存原片，随后可以裁剪和导出');
   } catch (error) {
-    status(error.name === 'NotAllowedError' ? '已取消屏幕选择，或浏览器未获录屏权限' : error.message, error.name !== 'NotAllowedError');
+    const outcome = desktop && captureToken ? await desktop.captureOutcome(captureToken).catch(() => null) : null;
+    const cancelled = outcome?.state === 'cancelled' || error.name === 'NotAllowedError';
+    status(outcome?.state === 'failed' ? outcome.message : cancelled ? '已取消屏幕选择，或未获录屏权限' : error.message, !cancelled);
   } finally {
     clearInterval(interval); if (recorder?.state === 'recording') recorder.stop();
     stream?.getTracks().forEach(track => track.stop()); recording = null; lock(null);
@@ -197,7 +202,7 @@ action('export-video', async () => {
     if (run.cancelled) status(run.reason);
     else {
       if (!blob.size) throw new Error('导出的视频为空');
-      download(blob, 'rea-studio-export.webm'); status('WebM 已导出 · 1280 × 720 · 无音轨');
+      download(blob, 'rea-studio-export.webm'); status(desktop ? '视频已生成 · 请选择 WebM 保存位置' : 'WebM 已导出 · 1280 × 720 · 无音轨');
     }
   } finally {
     pause(); if (recorder?.state === 'recording') recorder.stop();
@@ -220,4 +225,14 @@ document.addEventListener('keydown', event => {
     event.preventDefault(); (playing ? Promise.resolve(pause()) : play()).catch(error => status(error.message, true));
   }
 });
+if (desktop) {
+  document.querySelector('.badge').textContent = `桌面版 ${desktop.version}`;
+  document.querySelector('.record-note').innerHTML = '选择屏幕或应用窗口<br>本版录制无声，最长 2 分钟';
+  document.querySelector('.library-foot p').innerHTML = '视频在本机处理。<br>关闭软件前请保存原片和参数。';
+  desktop.onSaveResult(result => {
+    if (result.state === 'completed') status(`已保存：${result.name}`);
+    else if (result.state === 'cancelled') status('已取消保存 · 当前编辑内容仍保留');
+    else status('文件保存失败，请重新保存', true);
+  });
+}
 syncControls(); requestAnimationFrame(tick);

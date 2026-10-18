@@ -7,7 +7,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="/"><span class="brand-mark">r</span><span>REA <strong>STUDIO LAB</strong></span></a>
-    <span class="project-label">未命名项目 <span class="badge">原型 0.1</span></span>
+    <span class="project-label">未命名项目 <span class="badge">原型 0.2</span></span>
     <div class="top-actions"><button id="open-project" class="quiet" data-lock>打开参数</button><button id="save-project" data-lock>保存参数</button><button id="export-video" class="primary" data-lock>↗ 导出 WebM</button></div>
   </header>
   <main class="layout">
@@ -54,7 +54,7 @@
         <p class="help">缩放区间内平滑进入和退出。<br>也可以直接点击预览画面选焦点。</p>
       </section>
       <section class="control-section"><h2>裁剪片段</h2><div class="two-fields"><label for="trim-start">起点 / 秒<input id="trim-start" type="number" min="0" max="12" step="0.1" value="0" data-lock></label><label for="trim-end">终点 / 秒<input id="trim-end" type="number" min="0" max="12" step="0.1" value="12" data-lock></label></div><p class="help">导出选中片段，保留背景和缩放。<br>WebM · 720p · 30fps · 无音轨<br>按播放时长实时导出，单次 ≤ 2 分钟。</p></section>
-      <details class="scope"><summary>原型范围与研究来源</summary><p>基于 morluto/rea 保留的研究项目。当前界面为独立原型设计；尚未取得目标截图，未确认与“RE ENGINE”的对应关系。</p><p>本版提供浏览器录屏、导入、裁剪和单个手动缩放区间。自动追踪、音频、摄像头、MP4 导出和桌面打包尚未实现。</p><a href="https://github.com/morluto/rea" target="_blank" rel="noreferrer">查看 REA 上游 ↗</a></details>
+      <details class="scope"><summary>原型范围与研究来源</summary><p>基于 morluto/rea 保留的研究项目。当前界面为独立原型设计；尚未取得目标截图，未确认与“RE ENGINE”的对应关系。</p><p>本版提供录屏、导入、裁剪和单个手动缩放区间，可在浏览器或 Windows 桌面版中使用。自动追踪、音频、摄像头和 MP4 导出尚未实现。</p><a href="https://github.com/morluto/rea" target="_blank" rel="noreferrer">查看 REA 上游 ↗</a></details>
     </aside>
   </main>
   <script type="module" src="/app.mjs"></script>

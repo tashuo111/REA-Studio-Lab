@@ -1,0 +1,31 @@
+// Package only the independent editor. Keep the complete upstream checkout separate.
+import { cp, mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const require = createRequire(import.meta.url);
+const studio = fileURLToPath(new URL('../', import.meta.url));
+const electronEntry = require.resolve('../.local/tooling/node_modules/electron/package.json');
+const electronPackage = JSON.parse(await readFile(electronEntry, 'utf8'));
+const meta = JSON.parse(await readFile(join(studio, 'package.json'), 'utf8'));
+if (process.platform !== 'win32' || process.arch !== 'x64') throw new Error('This release script targets Windows x64');
+if (electronPackage.version !== '44.9.0') throw new Error('Use pinned Electron 44.9.0');
+const destination = resolve(process.argv[2] || join(studio, '.local', `REA-Studio-Lab-Windows-${meta.version}`));
+// A new directory is required: never replace an existing release or user files.
+await mkdir(destination);
+const runtime = join(dirname(electronEntry), 'dist');
+for (const entry of await readdir(runtime)) await cp(join(runtime, entry), join(destination, entry), { recursive: true, errorOnExist: true, force: false });
+await rename(join(destination, 'electron.exe'), join(destination, 'REA Studio Lab.exe'));
+const application = join(destination, 'resources', 'app');
+await mkdir(application);
+await writeFile(join(application, 'package.json'), JSON.stringify({ name: meta.name, productName: 'REA Studio Lab', version: meta.version, private: true, main: 'desktop/main.cjs', description: meta.description, license: 'MIT' }, null, 2) + '\n');
+await cp(join(studio, 'public'), join(application, 'public'), { recursive: true });
+await mkdir(join(application, 'desktop'));
+for (const name of ['main.cjs', 'preload.cjs', 'picker-preload.cjs', 'picker.html', 'picker.css', 'picker.js']) await cp(join(studio, 'desktop', name), join(application, 'desktop', name));
+await cp(join(studio, 'LICENSE'), join(application, 'LICENSE'));
+await cp(join(studio, 'desktop', 'README.zh-CN.md'), join(destination, '使用说明.txt'));
+await cp(join(studio, '..', 'LICENSE'), join(destination, 'REA-UPSTREAM-LICENSE.txt'));
+const notice = `REA Studio Lab ${meta.version}\n\nIndependent local recording/editor prototype, MIT licensed.\nResearch checkout: https://github.com/morluto/rea\nUpstream base: c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96\nThe complete upstream REA checkout and its third-party notices are preserved in the source project; REA CLI/native engines are not bundled or executed by this desktop package.\n\nDesktop runtime: Electron ${electronPackage.version}, https://www.electronjs.org/\nElectron LICENSE and LICENSES.chromium.html are included alongside the executable.\nNo affiliation with Screen Studio. The target screenshot and full feature specification remain unavailable.\n`;
+await writeFile(join(destination, 'SOURCE-NOTICES.txt'), notice);
+await writeFile(join(destination, 'build-info.json'), JSON.stringify({ app: meta.name, version: meta.version, electron: electronPackage.version, platform: 'win32', arch: 'x64', builtAt: new Date().toISOString(), upstream: 'https://github.com/morluto/rea', upstreamCommit: 'c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96' }, null, 2) + '\n');
+console.log(JSON.stringify({ directory: destination, executable: join(destination, 'REA Studio Lab.exe'), version: meta.version, electron: electronPackage.version }, null, 2));

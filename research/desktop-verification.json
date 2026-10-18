@@ -1,0 +1,131 @@
+{
+  "version": "0.2.0",
+  "checked_at": "2026-10-18T11:49:09.108Z",
+  "platform": "Windows x64",
+  "upstream_preserved_at": "c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96",
+  "predecessor_browser_commit": "e35444a5c",
+  "branch": "codex/screen-studio-mvp",
+  "source_sha256": {
+    "studio/desktop/build.mjs": "5ecdd401305d5ead0ec90a4f1c7efeb22e830a1d8ba3720d00727f90f33ce31e",
+    "studio/desktop/main.cjs": "1fec2580732f6081b4ce668d34c24c427e1e8ef77b3517fee3a1aa33feefb70a",
+    "studio/desktop/picker-preload.cjs": "2db3abbc8ed85b929a7b8f28aa57487ff31913ce9f222e91ed6a3fb8750bada5",
+    "studio/desktop/picker.css": "34363a984cff6630860e5f4e1b43fcbbac48bdc8ca4b7515d66ef3750aea4559",
+    "studio/desktop/picker.html": "878f3490c2d6f8993e61b20b36599ba1f26e73c84e59655a7ef2439b0286e1eb",
+    "studio/desktop/picker.js": "43a3952457dc939712c6a1e052bc70847eece992be8a7d198629617f911e1ad2",
+    "studio/desktop/preload.cjs": "240b8d56d2b78c0cce74b9f4e0501da145383ed443cf08faa17d046253ce028f",
+    "studio/desktop/start.mjs": "e2727a3f1ddcd025be3a45ed71f7746b2bfe87e36ba964805b88d2ac0cb6327f",
+    "studio/package.json": "5b3d72536003402506d3953f00de164fc0b281e3458df7c2282c7e310c598049",
+    "studio/public/app.mjs": "7c8c2836d622021ceff27911d71427e87d2e7e88144f79837043cf94d666ae81",
+    "studio/public/index.html": "876d60f008313a0ab03ea8b1107f7c73894a07368209c72470eb955af9f106ab",
+    "studio/public/media.mjs": "bae52c303140ba7b02c31e00fd24565927436a27c28ab17dd7e69d60b8213d5c",
+    "studio/public/model.mjs": "9feef202a6390a5820e30931a5937ec27e0d0a5f4c1b26245da00fc350849edf",
+    "studio/public/render.mjs": "17d6f1aa68c7063085c105664ca9f2cc8a660c1af4948495c4b34df1600f1b9d",
+    "studio/public/styles.css": "3d426ad54500a87dc2519bc6f2c097b61ccf2b1b00d413d420626db267792f7b",
+    "studio/server.mjs": "842c28adc516b50e14c22ac43ccff2967428bdd2fd062563adbaec0bdb192801",
+    "studio/tests/browser.mjs": "730bf1146f31753a52ee876519a5597308c8c4004098c71d425684c75c3917ea",
+    "studio/tests/desktop.mjs": "c0703e7f0c18f58c246a190931e1ebd54f94eef113a8ecaa3373a45e796a72bf",
+    "studio/tests/model.test.mjs": "a0ac87ebabdc83d6c2348c8aa42184eb10eb6be1d13bf6d3ea367a5f912df87c",
+    "studio/tests/server.test.mjs": "e7a0711bde4227d83ff46283b1beab4ab916495f7f76d5f5c1a3ff9d65b8b46f"
+  },
+  "electron": {
+    "version": "44.9.0",
+    "source": "https://github.com/electron/electron/releases/download/v44.9.0/electron-v44.9.0-win32-x64.zip",
+    "sha256": "88e08039d0ef359bab9f674e8051fa103bd8628ea7c5a5e1daaa610a8a0c6931",
+    "checked_against": [
+      "electron@44.9.0/checksums.json",
+      "official release SHASUMS256.txt"
+    ]
+  },
+  "node_tests": {
+    "command": "node --test studio/tests/*.test.mjs",
+    "passed": 5,
+    "failed": 0
+  },
+  "browser_regression": {
+    "command": "node studio/tests/browser.mjs",
+    "chromium": "145.0.7632.6",
+    "scenarios_passed": 7,
+    "page_errors": []
+  },
+  "desktop_source": {
+    "testedAt": "2026-10-18T11:44:13.705Z",
+    "executablePath": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\studio\\.local\\tooling\\node_modules\\.pnpm\\electron@44.9.0\\node_modules\\electron\\dist\\electron.exe",
+    "versions": {
+      "electron": "44.9.0",
+      "chrome": "152.0.7977.167",
+      "node": "24.22.0"
+    },
+    "checks": [
+      "Standalone secure local protocol; renderer has no Node.js or picker IPC access; only listed assets served",
+      "Native download handling saves JSON/PNG/WebM; edited 2-second WebM decodes at 1280x720",
+      "Capture picker cancellation returns to the editor without starting capture",
+      "Real Windows window capture of test-owned fixture; stop, save, decode: 1180x696, 2.10 seconds",
+      "Closing picker cancels request; export cancellation releases controls"
+    ],
+    "pageErrors": [],
+    "limitations": [
+      "System Save As UI bypassed only by test harness setSavePath; production uses Save As",
+      "Actual capture limited to a test-owned application window; full-screen capture and long recordings not tested"
+    ]
+  },
+  "desktop_packaged": {
+    "testedAt": "2026-10-18T11:45:32.362Z",
+    "executablePath": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\REA-Studio-Lab-Windows-0.2.0\\REA Studio Lab.exe",
+    "versions": {
+      "electron": "44.9.0",
+      "chrome": "152.0.7977.167",
+      "node": "24.22.0"
+    },
+    "checks": [
+      "Standalone secure local protocol; renderer has no Node.js or picker IPC access; only listed assets served",
+      "Native download handling saves JSON/PNG/WebM; edited 2-second WebM decodes at 1280x720",
+      "Capture picker cancellation returns to the editor without starting capture",
+      "Real Windows window capture of test-owned fixture; stop, save, decode: 1180x696, 2.07 seconds",
+      "Closing picker cancels request; export cancellation releases controls"
+    ],
+    "pageErrors": [],
+    "limitations": [
+      "System Save As UI bypassed only by test harness setSavePath; production uses Save As",
+      "Actual capture limited to a test-owned application window; full-screen capture and long recordings not tested"
+    ]
+  },
+  "native_save_dialog": {
+    "exercised": true,
+    "method": "Computer Use / Windows native Save As",
+    "operation": "Save demo project JSON to an explicit new local filename",
+    "file": "../studio/.local/desktop-tests/native-save-project.json",
+    "parsed_schema": "rea-studio-project",
+    "renderer_reported_completed": true
+  },
+  "user_reported_error": {
+    "message": "TypeError: Video was requested, but no stream was provided",
+    "cause": "Cancel path passed an empty object, which Electron interprets as an invalid stream grant",
+    "fix": "Reject display request with null; retain the per-request cancellation outcome so the renderer distinguishes cancellation from capture failure",
+    "regressions": [
+      "Cancel button, then record again",
+      "Close picker using window close",
+      "Successful real capture following cancellation"
+    ]
+  },
+  "release": {
+    "directory": "../REA-Studio-Lab-Windows-0.2.0",
+    "executable": "REA Studio Lab.exe",
+    "source_matches_checked_files": true,
+    "archive": {
+      "filename": "REA-Studio-Lab-Windows-0.2.0.zip",
+      "bytes": 163301951,
+      "sha256": "ad8084404f96754f1dc4796c2b942ff79b6adf7b6f5ec247c62858b88af57857"
+    }
+  },
+  "visual_inspection": "Viewed the generated frame from the actual test-owned window recording; content and composition were correct. Native Save As and live editor also inspected.",
+  "not_verified": [
+    "Full-screen recording",
+    "Other machines or Windows versions",
+    "Long recordings, 4K or large-input performance",
+    "Native Save As for every extension or overwriting existing files",
+    "Target Screen Studio UI fidelity (target screenshot still unavailable)",
+    "Audio, camera, MP4 and automatic tracking (not implemented)",
+    "Installer, code signing and automatic updates (not implemented)"
+  ],
+  "original_analysis_note": "research/verification.json remains the 0.1 baseline snapshot; its REA evidence and source hashes are not claimed to cover this desktop revision."
+}

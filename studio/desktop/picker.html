@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>选择录制来源</title><link rel="stylesheet" href="/picker.css"></head>
+<body>
+  <header><span class="eyebrow">REA STUDIO LAB</span><h1>选择要录制的内容</h1><p>选中一个屏幕或窗口，再开始录制。当前版本不录制声音。</p></header>
+  <nav aria-label="录制来源类型"><button data-kind="screen" aria-pressed="true">整个屏幕</button><button data-kind="window" aria-pressed="false">应用窗口</button></nav>
+  <main><p id="message" role="status">正在读取可录制的来源…</p><div id="sources" class="sources" role="group" aria-label="可录制的来源"></div></main>
+  <footer><span id="selection">尚未选择</span><button id="cancel">取消</button><button id="confirm" class="primary" disabled>开始录制</button></footer>
+  <script src="/picker.js" defer></script>
+</body>
+</html>

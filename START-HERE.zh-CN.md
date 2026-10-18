@@ -2,7 +2,15 @@
 
 本项目已在完整的 `morluto/rea` 克隆中建立独立开发分支。当前交付为可运行的录屏与编辑最小原型，目标截图尚未取得，不能据此认定已复刻 Screen Studio / RE ENGINE 的完整界面或行为。
 
-## 运行
+## Windows 桌面版
+
+0.2.0 增加独立的 Electron Windows x64 便携版。解压整个 `REA-Studio-Lab-Windows-0.2.0` 文件夹，双击其中 `REA Studio Lab.exe`，即可使用录屏和编辑器，无需启动服务器或浏览器。请保留 EXE 同目录的运行时文件。
+
+点击「开始录屏」，在独立选择窗口中选中屏幕或应用窗口，然后确认录制。保存原片、参数、PNG 或 WebM 时使用系统另存为窗口。浏览器版中的已有内容需先保存原片和参数，再到桌面版导入。
+
+桌面版同样没有自动保存，关闭软件前请保存原片和参数。完整用法、版本边界和源码启动/打包说明见 [桌面版使用说明](studio/desktop/README.zh-CN.md) 和 [开发说明](studio/README.zh-CN.md)。
+
+## 浏览器版运行
 
 在本目录双击 `start-studio.cmd`，然后在 Chrome 或 Edge 打开 <http://127.0.0.1:4317>。保持启动窗口打开；在启动窗口按 Ctrl+C 停止服务。
 
@@ -12,7 +20,7 @@
 node studio/server.mjs
 ```
 
-原型运行不需要安装第三方依赖。需要 Node.js 22.19+；本机已用 Node.js 24.19.0 验证。
+浏览器原型运行不需要安装第三方依赖。需要 Node.js 22.19+；本机已用 Node.js 24.19.0 验证。
 
 端口冲突时，在 PowerShell 中设置 `$env:STUDIO_PORT = '4318'` 再启动，使用新端口访问。服务仅监听 `127.0.0.1`。
 
@@ -27,17 +35,18 @@ node studio/server.mjs
 ## 本版边界
 
 - 录屏、预览及导出均无声；本版没有麦克风、系统音频或摄像头。
-- 浏览器录屏和 WebM 实时导出单次上限 2 分钟，录制缓存上限 256 MiB。
+- 录屏和 WebM 实时导出单次上限 2 分钟，录制缓存上限 256 MiB。
 - 导入上限 512 MiB、30 分钟、单边 8192 像素；编码必须由浏览器支持。
 - 导出固定 1280 × 720，目标 30fps；实际时序受前台浏览器调度影响。切到后台会取消导出。
-- 没有自动鼠标追踪、多段剪辑、字幕、MP4/GIF 导出或桌面安装包。
-- 页面关闭会释放素材；本版没有自动保存或崩溃恢复。
+- 没有自动鼠标追踪、多段剪辑、字幕或 MP4/GIF 导出。桌面版为便携文件夹，没有安装器、自动更新或代码签名。
+- 页面或桌面窗口关闭会释放素材；本版没有自动保存或崩溃恢复。
 
 ## 文件导航
 
 - [研究报告、可复用模块与分阶段计划](research/README.zh-CN.md)
 - [来源和固定版本](research/provenance.json)
 - [验证记录](research/verification.json)
+- [桌面版验证记录](research/desktop-verification.json)
 - [原型开发说明](studio/README.zh-CN.md)
 - 上游原始文档：[README](README.md)、[MIT 许可证](LICENSE)、[第三方声明](THIRD_PARTY_NOTICES.md)。
 
