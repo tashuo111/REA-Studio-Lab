@@ -7,7 +7,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="/"><span class="brand-mark">r</span><span>REA <strong>STUDIO LAB</strong></span></a>
-    <span class="project-label">未命名项目 <span class="badge">原型 0.3</span></span>
+    <span class="project-label">未命名项目 <span class="badge">原型 0.4</span></span>
     <div class="top-actions"><button id="open-project" class="quiet" data-lock>打开参数</button><button id="save-project" data-lock>保存参数</button><button id="export-video" class="primary" data-lock>↗ 导出 WebM</button></div>
   </header>
   <main class="layout">
@@ -36,7 +36,7 @@
         <div class="track-row"><span>视频</span><div class="track video-track"><div id="clip-band" class="clip-band"><span id="clip-title">产品演示</span></div></div></div>
         <div class="track-row"><span>缩放</span><div class="track"><div id="zoom-band" class="zoom-band">手动缩放</div></div></div>
         <label class="scrub-label" for="scrub">播放位置</label><input id="scrub" type="range" min="0" max="12" step="0.01" value="0" aria-label="播放位置" data-lock>
-        <div class="timeline-bottom"><span>拖动进度条浏览 · 点击预览设置焦点</span><span id="zoom-state">1.00×</span></div>
+        <div class="timeline-bottom"><span id="timeline-hint">拖动进度条浏览 · 点击预览设置焦点</span><span id="zoom-state">1.00×</span></div>
       </section>
       <div class="activity" role="status" aria-live="polite"><span id="status">就绪 · 先试播示例，或导入自己的录屏</span><button id="cancel-export" hidden>取消导出</button></div>
     </section>
@@ -47,15 +47,19 @@
         <label for="padding">留白 <output id="padding-value">56 px</output></label><input id="padding" type="range" min="0" max="120" value="56" data-lock>
         <label for="radius">圆角 <output id="radius-value">20 px</output></label><input id="radius" type="range" min="0" max="48" value="20" data-lock>
       </section>
-      <section class="control-section"><h2>手动缩放 <input id="zoom-enabled" type="checkbox" checked aria-label="启用手动缩放" data-lock></h2>
+      <section class="control-section"><h2>缩放 <input id="zoom-enabled" type="checkbox" checked aria-label="启用缩放" data-lock></h2>
+        <label for="zoom-mode">缩放方式</label><select id="zoom-mode" data-lock aria-describedby="pointer-hint"><option value="manual">固定焦点</option><option id="follow-option" value="follow" disabled>跟随鼠标</option></select>
+        <p id="pointer-hint" class="help pointer-note"></p>
         <label for="zoom-scale">放大倍率 <output id="scale-value">1.70×</output></label><input id="zoom-scale" type="range" min="1" max="3" step="0.05" value="1.7" data-lock>
         <div class="two-fields"><label for="zoom-start">开始 / 秒<input id="zoom-start" type="number" min="0" max="12" step="0.1" value="2.4" data-lock></label><label for="zoom-end">结束 / 秒<input id="zoom-end" type="number" min="0" max="12" step="0.1" value="8.4" data-lock></label></div>
-        <label for="focus-x">水平焦点 <output id="x-value">65%</output></label><input id="focus-x" type="range" min="0" max="1" step="0.01" value="0.65" data-lock>
+        <div id="manual-focus"><label for="focus-x">水平焦点 <output id="x-value">65%</output></label><input id="focus-x" type="range" min="0" max="1" step="0.01" value="0.65" data-lock>
         <label for="focus-y">垂直焦点 <output id="y-value">45%</output></label><input id="focus-y" type="range" min="0" max="1" step="0.01" value="0.45" data-lock>
-        <p class="help">缩放区间内平滑进入和退出。<br>也可以直接点击预览画面选焦点。</p>
+        <p class="help">也可以直接点击预览画面选焦点。</p></div>
+        <div id="follow-controls" hidden><label for="follow-smoothing">跟随平滑度 <output id="smoothing-value">200 ms</output></label><input id="follow-smoothing" type="range" min="0.05" max="0.6" step="0.05" value="0.2" data-lock><p class="help">数值越小越紧跟，越大越柔和。<br>鼠标离开录制区域时，镜头保持最后位置。</p></div>
+        <p class="help output-note">在设定时间内平滑放大和缩小。</p>
       </section>
       <section class="control-section"><h2>裁剪片段</h2><div class="two-fields"><label for="trim-start">起点 / 秒<input id="trim-start" type="number" min="0" max="12" step="0.1" value="0" data-lock></label><label for="trim-end">终点 / 秒<input id="trim-end" type="number" min="0" max="12" step="0.1" value="12" data-lock></label></div><p class="help">导出选中片段，保留背景和缩放。<br><span id="export-format">WebM · 1280 × 720 · 30fps · 无音轨</span><br>按播放时长实时导出，单次 ≤ 2 分钟。<br>缓存上限 256 MiB；超限时请缩短片段。</p></section>
-      <details class="scope"><summary>原型范围与研究来源</summary><p>基于 morluto/rea 保留的研究项目。当前界面为独立原型设计；尚未取得目标截图，未确认与“RE ENGINE”的对应关系。</p><p>本版提供录屏、导入、裁剪和单个手动缩放区间，可在浏览器或 Windows 桌面版中使用。自动追踪、音频、摄像头和 MP4 导出尚未实现。</p><a href="https://github.com/morluto/rea" target="_blank" rel="noreferrer">查看 REA 上游 ↗</a></details>
+      <details class="scope"><summary>原型范围与研究来源</summary><p>基于 morluto/rea 保留的研究项目。当前界面为独立原型设计；尚未取得目标截图，未确认与“RE ENGINE”的对应关系。</p><p>本版提供录屏、导入、裁剪和一个缩放区间。Windows 桌面版新录屏可保存鼠标轨迹，缩放可选择固定焦点或跟随鼠标。旧视频鼠标识别、自动点击缩放、音频、摄像头和 MP4 导出尚未实现。</p><a href="https://github.com/morluto/rea" target="_blank" rel="noreferrer">查看 REA 上游 ↗</a></details>
     </aside>
   </main>
   <script type="module" src="/app.mjs"></script>

@@ -1,4 +1,4 @@
-import { BACKGROUNDS, OUTPUT_PRESETS, MAX_MEDIA_BYTES, captureBitrate, createProject, parseProject, clamp, cropAt, frameRect, sameSource, formatTime, zoomAt } from './model.mjs';
+import { BACKGROUNDS, OUTPUT_PRESETS, MAX_MEDIA_BYTES, MAX_PROJECT_BYTES, hasPointer, captureBitrate, createProject, parseProject, clamp, cropAt, frameRect, sameSource, formatTime, zoomAt } from './model.mjs';
 import { paintDemo, render } from './render.mjs';
 import { webmType, openVideo, closeVideo, seekVideo, download } from './media.mjs';
 
@@ -43,6 +43,15 @@ function syncControls() {
   $('resolution-hint').textContent = `原片 ${project.source.width} × ${project.source.height}。${upscale ? '当前画面或缩放区间会放大输出，清晰度受原片限制。' : '当前画面可由原片分辨率覆盖。'}`;
   for (const [id, value] of Object.entries({ padding: project.frame.padding, radius: project.frame.radius, 'zoom-scale': project.zoom.scale, 'zoom-start': project.zoom.start, 'zoom-end': project.zoom.end, 'focus-x': project.zoom.x, 'focus-y': project.zoom.y, 'trim-start': project.trim.start, 'trim-end': project.trim.end })) $(id).value = Math.round(value * 1000) / 1000;
   $('zoom-enabled').checked = project.zoom.enabled;
+  const following = project.zoom.mode === 'follow', tracked = hasPointer(project.pointer);
+  $('zoom-mode').value = project.zoom.mode;
+  $('follow-option').disabled = !tracked;
+  $('manual-focus').hidden = following; $('follow-controls').hidden = !following;
+  $('follow-smoothing').value = project.zoom.smoothing;
+  $('smoothing-value').textContent = `${Math.round(project.zoom.smoothing * 1000)} ms`;
+  $('pointer-hint').textContent = tracked ? '此素材含鼠标轨迹。保存原片和参数，可保留跟随效果。' : desktop ? '此素材没有鼠标轨迹。用桌面版新录屏后即可选择跟随。' : '此素材没有鼠标轨迹。请用桌面版录屏，并导入原片和参数。';
+  $('zoom-band').textContent = following ? '跟随鼠标' : '固定焦点';
+  $('timeline-hint').textContent = following ? '拖动进度条浏览 · 镜头按录制轨迹跟随鼠标' : '拖动进度条浏览 · 点击预览设置焦点';
   for (const id of ['trim-start', 'trim-end', 'zoom-start', 'zoom-end', 'scrub']) $(id).max = project.source.duration;
   $('padding-value').textContent = `${project.frame.padding} px`; $('radius-value').textContent = `${project.frame.radius} px`;
   $('scale-value').textContent = `${project.zoom.scale.toFixed(2)}×`;
@@ -100,11 +109,14 @@ for (const [id, section, key] of [['padding','frame','padding'],['radius','frame
   element.addEventListener(element.type === 'range' ? 'input' : 'change', () => edit(section, key, element.valueAsNumber));
 }
 $('zoom-enabled').addEventListener('change', event => edit('zoom', 'enabled', event.target.checked));
+$('zoom-mode').addEventListener('change', event => edit('zoom', 'mode', event.target.value));
+$('follow-smoothing').addEventListener('input', event => edit('zoom', 'smoothing', event.target.valueAsNumber));
 $('output-resolution').replaceChildren(...Object.entries(OUTPUT_PRESETS).map(([value, preset]) => new Option(`${preset.label} · ${preset.width} × ${preset.height}`, value)));
 $('output-resolution').addEventListener('change', event => edit('output', 'resolution', event.target.value));
 document.querySelectorAll('[data-background]').forEach(button => button.addEventListener('click', () => { if (Object.hasOwn(BACKGROUNDS, button.dataset.background)) edit('frame', 'background', button.dataset.background); }));
 canvas.addEventListener('click', event => {
   if (busy) return;
+  if (project.zoom.mode === 'follow') { status('当前按录制轨迹跟随鼠标；如需点击选焦点，请将缩放方式切换为固定焦点'); return; }
   const bounds = canvas.getBoundingClientRect();
   const px = (event.clientX - bounds.left) * canvas.width / bounds.width, py = (event.clientY - bounds.top) * canvas.height / bounds.height;
   const r = frameRect(project.source, project.frame, canvas.width, canvas.height), crop = cropAt(project.source, project.zoom, time);
@@ -137,7 +149,7 @@ $('project-input').addEventListener('change', async event => {
   const file = event.target.files[0]; event.target.value = ''; if (!file) return;
   pause(); lock('loading');
   try {
-    if (file.size > 256 * 1024) throw new Error('参数文件超过 256 KB 上限');
+    if (file.size > MAX_PROJECT_BYTES) throw new Error('参数文件超过 2 MiB 上限');
     const candidate = parseProject(JSON.parse(await file.text()));
     if (candidate.source.kind === 'video' && (!media || !sameSource(candidate.source, media.source))) throw new Error('请先导入此参数对应的原片（文件内容指纹需匹配，允许重命名）');
     if (candidate.source.kind === 'demo') { closeVideo(media); media = null; }
@@ -155,10 +167,11 @@ action('record', async () => {
   if (!navigator.mediaDevices?.getDisplayMedia) throw new Error('当前浏览器不支持屏幕捕获，请在 Chrome 或 Edge 中打开本地地址');
   const mimeType = webmType();
   pause(); lock('choosing'); status(desktop ? '请在弹出的窗口中选择录制来源，并点击开始录制' : '请在浏览器弹出的选择器中选择录制来源');
-  let stream, interval, recorder, captureToken;
+  let stream, interval, recorder, captureToken, pointerReady, pointerResult;
   try {
     if (desktop) captureToken = await desktop.prepareCapture();
     stream = await navigator.mediaDevices.getDisplayMedia({ video: { width: { ideal: 3840 }, height: { ideal: 2160 }, frameRate: { ideal: 30, max: 30 } }, audio: false });
+    if (desktop) { status('正在准备鼠标轨迹…'); pointerReady = await desktop.preparePointer(captureToken).catch(error => ({ available: false, message: error.message })); }
     const capture = stream.getVideoTracks()[0].getSettings();
     recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: captureBitrate(capture.width, capture.height) });
     const chunks = []; let bytes = 0; const started = performance.now();
@@ -169,25 +182,42 @@ action('record', async () => {
       recorder.addEventListener('error', () => reject(new Error('屏幕录制失败，请重试')), { once: true });
     });
     stream.getVideoTracks()[0].addEventListener('ended', () => recording?.stop(), { once: true });
-    recorder.start(500); lock('recording');
+    const captureEpoch = performance.timeOrigin + performance.now();
+    recorder.start(500);
+    if (pointerReady?.available) {
+      try { await desktop.startPointer(captureToken, captureEpoch); }
+      catch { pointerReady = { available: false, message: '鼠标轨迹未能开始，本次保留普通录屏' }; }
+    }
+    lock('recording');
     interval = setInterval(() => {
       const elapsed = (performance.now() - started) / 1000;
-      status(`正在录屏 ${formatTime(elapsed)}${capture.width && capture.height ? ` · ${capture.width} × ${capture.height}` : ''} · 点击结束录屏后进入编辑`);
+      status(`正在录屏 ${formatTime(elapsed)}${capture.width && capture.height ? ` · ${capture.width} × ${capture.height}` : ''} · ${pointerReady?.available ? '鼠标轨迹记录中' : pointerReady?.message || '点击结束录屏后进入编辑'}`);
       if (elapsed >= 120) recording?.stop();
     }, 300);
     const blob = await done; const elapsed = (performance.now() - started) / 1000;
+    if (desktop) pointerResult = await desktop.stopPointer(captureToken).catch(() => null);
     clearInterval(interval); stream.getTracks().forEach(track => track.stop()); recording = null;
     if (!blob.size || elapsed < 0.1) throw new Error('录制时间太短，请重新录制');
     lock('loading'); status('正在整理录屏…');
     replaceMedia(await openVideo(new File([blob], `recording-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`, { type: mimeType }), elapsed));
-    status(bytes >= MAX_MEDIA_BYTES ? '录屏已载入 · 达到 256 MiB 缓存上限，已自动结束并保留原片' : '录屏已载入 · 请保存原片，随后可以裁剪和导出');
+    if (pointerResult?.samples.length) {
+      const pointer = { kind: pointerResult.kind, samples: pointerResult.samples.filter(sample => sample.t <= project.source.duration) };
+      if (hasPointer(pointer)) {
+        project = parseProject({ ...project, pointer, zoom: { ...project.zoom, mode: 'follow', start: 0, end: project.source.duration } });
+        syncControls();
+      }
+    }
+    const note = bytes >= MAX_MEDIA_BYTES ? '达到缓存上限，已自动结束并保留原片' : pointerResult?.warning || (project.zoom.mode === 'follow' ? '已启用跟随鼠标 · 请保存原片和参数以保留轨迹' : pointerReady?.message || (desktop ? '未采到画面内的鼠标轨迹，可使用固定焦点缩放' : '请保存原片，随后可以裁剪和导出'));
+    status(`录屏已载入 · ${note}`);
   } catch (error) {
     const outcome = desktop && captureToken ? await desktop.captureOutcome(captureToken).catch(() => null) : null;
     const cancelled = outcome?.state === 'cancelled' || error.name === 'NotAllowedError';
     status(outcome?.state === 'failed' ? outcome.message : cancelled ? '已取消屏幕选择，或未获录屏权限' : error.message, !cancelled);
   } finally {
     clearInterval(interval); if (recorder?.state === 'recording') recorder.stop();
-    stream?.getTracks().forEach(track => track.stop()); recording = null; lock(null);
+    stream?.getTracks().forEach(track => track.stop()); recording = null;
+    if (desktop && captureToken) await desktop.stopPointer(captureToken).catch(() => {});
+    lock(null);
   }
 });
 action('stop-record', () => recording?.stop());
@@ -245,7 +275,7 @@ document.addEventListener('keydown', event => {
 });
 if (desktop) {
   document.querySelector('.badge').textContent = `桌面版 ${desktop.version}`;
-  document.querySelector('.record-note').innerHTML = '选择屏幕或应用窗口<br>本版录制无声，最长 2 分钟';
+  document.querySelector('.record-note').innerHTML = '选择屏幕或应用窗口<br>同步记录鼠标轨迹 · 无声 · 最长 2 分钟';
   document.querySelector('.library-foot p').innerHTML = '视频在本机处理。<br>关闭软件前请保存原片和参数。';
   desktop.onSaveResult(result => {
     if (result.state === 'completed') status(`已保存：${result.name}`);

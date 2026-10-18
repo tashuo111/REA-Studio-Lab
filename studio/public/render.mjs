@@ -41,7 +41,7 @@ export function render(canvas, source, project, time) {
   colors.forEach((color, index) => gradient.addColorStop(index / 2, color));
   c.fillStyle = gradient; c.fillRect(0, 0, canvas.width, canvas.height);
   const r = frameRect(project.source, project.frame, canvas.width, canvas.height);
-  const crop = cropAt(project.source, project.zoom, time);
+  const crop = cropAt(project.source, project.zoom, time, project.pointer);
   const unit = canvas.width / 1280, radius = project.frame.radius * unit;
   c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
   c.save(); c.shadowColor = '#00000055'; c.shadowBlur = 38 * unit; c.shadowOffsetY = 14 * unit; c.fillStyle = '#fff';

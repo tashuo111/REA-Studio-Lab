@@ -12,13 +12,16 @@ export const OUTPUT_PRESETS = {
   '2160p': { label: '4K / UHD', width: 3840, height: 2160, bitrate: 40000000 },
 };
 export const MAX_MEDIA_BYTES = 256 * 1024 * 1024;
+export const MAX_PROJECT_BYTES = 2 * 1024 * 1024;
+export const MAX_POINTER_SAMPLES = 4500;
 export const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 
 export function createProject(source = DEMO_SOURCE, resolution = '720p') {
   return {
-    schema: 'rea-studio-project', version: 2, source: { ...source },
+    schema: 'rea-studio-project', version: 3, source: { ...source },
     trim: { start: 0, end: source.duration },
-    zoom: { enabled: true, start: source.duration * 0.2, end: source.duration * 0.7, scale: 1.7, x: 0.65, y: 0.45 },
+    zoom: { enabled: true, mode: 'manual', smoothing: 0.2, start: source.duration * 0.2, end: source.duration * 0.7, scale: 1.7, x: 0.65, y: 0.45 },
+    pointer: null,
     frame: { padding: 56, radius: 20, background: 'aurora' },
     output: { resolution },
   };
@@ -34,7 +37,7 @@ function number(value, low, high, name) {
 // Parse at the persistence boundary; never let imported values reach canvas unchecked.
 export function parseProject(value) {
   object(value, '项目');
-  if (value.schema !== 'rea-studio-project' || ![1, 2].includes(value.version)) throw new Error('不支持的项目格式或版本');
+  if (value.schema !== 'rea-studio-project' || ![1, 2, 3].includes(value.version)) throw new Error('不支持的项目格式或版本');
   const { source, trim, zoom, frame } = value;
   const output = value.version === 1 ? { resolution: '720p' } : value.output;
   object(output, '导出设置');
@@ -56,12 +59,33 @@ export function parseProject(value) {
   number(zoom.scale, 1, 3, '缩放倍率'); number(zoom.x, 0, 1, '焦点 X'); number(zoom.y, 0, 1, '焦点 Y');
   number(frame.padding, 0, 120, '留白'); number(frame.radius, 0, 48, '圆角');
   if (!Object.hasOwn(BACKGROUNDS, frame.background)) throw new Error('背景无效');
+  const mode = value.version < 3 ? 'manual' : zoom.mode;
+  const smoothing = value.version < 3 ? 0.2 : zoom.smoothing;
+  if (!['manual', 'follow'].includes(mode)) throw new Error('缩放方式无效');
+  number(smoothing, 0.05, 0.6, '跟随平滑度');
+  let pointer = null;
+  if (value.version === 3 && value.pointer !== null) {
+    object(value.pointer, '鼠标轨迹');
+    if (source.kind !== 'video' || !['screen', 'window'].includes(value.pointer.kind)) throw new Error('轨迹来源无效');
+    const samples = value.pointer.samples;
+    if (!Array.isArray(samples) || samples.length < 1 || samples.length > MAX_POINTER_SAMPLES) throw new Error('轨迹采样数量无效');
+    let previous = -1;
+    pointer = { kind: value.pointer.kind, samples: samples.map(sample => {
+      object(sample, '轨迹采样'); number(sample.t, 0, Math.min(125, source.duration), '轨迹时间');
+      if (sample.t <= previous) throw new Error('轨迹时间必须递增');
+      previous = sample.t;
+      if (sample.x !== null || sample.y !== null) { number(sample.x, 0, 1, '鼠标 X'); number(sample.y, 0, 1, '鼠标 Y'); }
+      return { t: sample.t, x: sample.x, y: sample.y };
+    }) };
+  }
+  if (mode === 'follow' && !hasPointer(pointer)) throw new Error('此素材没有可用的鼠标轨迹，请使用桌面版重新录制');
   // Explicit projection discards unknown keys and never merges untrusted object properties.
   return {
-    schema: value.schema, version: 2,
+    schema: value.schema, version: 3,
     source: { kind: source.kind, name: source.name, duration: source.duration, width: source.width, height: source.height, size: source.size, lastModified: source.lastModified, sha256: source.sha256 },
     trim: { start: trim.start, end: trim.end },
-    zoom: { enabled: zoom.enabled, start: zoom.start, end: zoom.end, scale: zoom.scale, x: zoom.x, y: zoom.y },
+    zoom: { enabled: zoom.enabled, mode, smoothing, start: zoom.start, end: zoom.end, scale: zoom.scale, x: zoom.x, y: zoom.y },
+    pointer,
     frame: { padding: frame.padding, radius: frame.radius, background: frame.background },
     output: { resolution: output.resolution },
   };
@@ -80,10 +104,40 @@ export function zoomAt(zoom, time) {
   return 1 + (zoom.scale - 1) * eased;
 }
 
-export function cropAt(source, zoom, time) {
+export function hasPointer(pointer) { return Boolean(pointer?.samples.some(sample => sample.x !== null)); }
+
+// The camera path depends only on saved samples and settings, never playback order.
+// This makes seeking, preview, PNG and video export use exactly the same camera.
+const pointerPaths = new WeakMap();
+export function focusAt(zoom, time, pointer = null) {
+  if (zoom.mode !== 'follow' || !pointer) return { x: zoom.x, y: zoom.y };
+  let cached = pointerPaths.get(pointer);
+  if (!cached || cached.smoothing !== zoom.smoothing) {
+    let x = 0.5, y = 0.5, previous = 0;
+    const path = pointer.samples.map((sample, index) => {
+      if (sample.x !== null) {
+        const alpha = index === 0 && sample.t === 0 ? 1 : 1 - Math.exp(-(sample.t - previous) / zoom.smoothing);
+        x += (sample.x - x) * alpha; y += (sample.y - y) * alpha;
+      }
+      previous = sample.t;
+      return { t: sample.t, x, y };
+    });
+    cached = { smoothing: zoom.smoothing, path }; pointerPaths.set(pointer, cached);
+  }
+  const path = cached.path;
+  if (!path.length || time < path[0].t) return { x: 0.5, y: 0.5 };
+  let low = 0, high = path.length - 1;
+  while (low < high) { const mid = Math.ceil((low + high) / 2); if (path[mid].t <= time) low = mid; else high = mid - 1; }
+  const a = path[low], b = path[Math.min(low + 1, path.length - 1)];
+  const progress = a === b ? 0 : clamp((time - a.t) / (b.t - a.t), 0, 1);
+  return { x: a.x + (b.x - a.x) * progress, y: a.y + (b.y - a.y) * progress };
+}
+
+export function cropAt(source, zoom, time, pointer = null) {
   const scale = zoomAt(zoom, time);
+  const focus = focusAt(zoom, time, pointer);
   const width = source.width / scale, height = source.height / scale;
-  return { x: clamp(zoom.x * source.width - width / 2, 0, source.width - width), y: clamp(zoom.y * source.height - height / 2, 0, source.height - height), width, height };
+  return { x: clamp(focus.x * source.width - width / 2, 0, source.width - width), y: clamp(focus.y * source.height - height / 2, 0, source.height - height), width, height };
 }
 
 export function frameRect(source, frame, width = 1280, height = 720) {

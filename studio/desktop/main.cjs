@@ -1,4 +1,5 @@
-const { app, BrowserWindow, desktopCapturer, dialog, ipcMain, Menu, protocol, session, shell } = require('electron');
+const { app, BrowserWindow, desktopCapturer, dialog, ipcMain, Menu, protocol, session, shell, screen } = require('electron');
+const { CursorCapture } = require('./cursor.cjs');
 const { readFile } = require('node:fs/promises');
 const path = require('node:path');
 
@@ -20,6 +21,15 @@ const routes = new Map([
 ]);
 const csp = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; img-src 'self' blob: data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'";
 let mainWindow, pendingCapture = null, activity = null, captureSequence = 0, captureOutcome = null;
+let captureSource = null, cursorCapture = null;
+
+async function stopCursor() {
+  const capture = cursorCapture; captureSource = null;
+  if (!capture) return null;
+  const result = await capture.stop();
+  if (cursorCapture === capture) cursorCapture = null;
+  return result;
+}
 
 app.setName('REA Studio Lab');
 app.setAppUserModelId('local.rea-studio-lab');
@@ -47,6 +57,7 @@ function finishCapture(source, failureMessage) {
   if (!pending) return;
   pendingCapture = null;
   captureOutcome = { token: pending.token, state: source ? 'selected' : failureMessage ? 'failed' : 'cancelled', message: failureMessage };
+  captureSource = source ? { id: source.id, display_id: source.display_id } : null;
   clearTimeout(pending.timeout);
   if (pending.window && !pending.window.isDestroyed()) pending.window.destroy();
   // null rejects the request. An empty object is an invalid stream grant in Electron 44.
@@ -80,13 +91,28 @@ async function chooseCapture(request, callback) {
 }
 
 ipcMain.handle('studio:capture-prepare', event => {
-  if (!senderIs(event, mainWindow, APP_URL) || pendingCapture) throw new Error('Capture is unavailable');
+  if (!senderIs(event, mainWindow, APP_URL) || pendingCapture || cursorCapture) throw new Error('Capture is unavailable');
+  captureSource = null;
   captureOutcome = { token: ++captureSequence, state: 'pending' };
   return captureSequence;
 });
 ipcMain.handle('studio:capture-outcome', (event, token) => {
   if (!senderIs(event, mainWindow, APP_URL) || captureOutcome?.token !== token) return null;
   return captureOutcome;
+});
+ipcMain.handle('studio:pointer-prepare', async (event, token) => {
+  if (!senderIs(event, mainWindow, APP_URL) || captureOutcome?.token !== token || captureOutcome.state !== 'selected' || !captureSource || cursorCapture) throw new Error('Unavailable pointer capture');
+  const capture = new CursorCapture(captureSource, screen); cursorCapture = capture;
+  try { return await capture.ready; }
+  catch (error) { return { available: false, message: error.message }; }
+});
+ipcMain.handle('studio:pointer-start', (event, token, epoch) => {
+  if (!senderIs(event, mainWindow, APP_URL) || captureOutcome?.token !== token || !cursorCapture) throw new Error('Unavailable pointer capture');
+  cursorCapture.start(epoch);
+});
+ipcMain.handle('studio:pointer-stop', (event, token) => {
+  if (!senderIs(event, mainWindow, APP_URL) || captureOutcome?.token !== token) return null;
+  return stopCursor();
 });
 ipcMain.handle('studio:capture-sources', event => {
   const pending = pendingCapture;
@@ -156,9 +182,11 @@ app.whenReady().then(async () => {
       if (answer === 0) { event.preventDefault(); return; }
     }
     finishCapture();
+    void stopCursor();
   });
-  mainWindow.on('closed', () => { mainWindow = null; });
-  mainWindow.webContents.on('render-process-gone', () => { activity = null; finishCapture(); });
+  mainWindow.on('closed', () => { mainWindow = null; void stopCursor(); });
+  mainWindow.webContents.on('render-process-gone', () => { activity = null; finishCapture(); void stopCursor(); });
   await mainWindow.loadURL(APP_URL);
 }).catch(error => { console.error(error); app.quit(); });
 app.on('window-all-closed', () => app.quit());
+app.on('before-quit', () => { void stopCursor(); });

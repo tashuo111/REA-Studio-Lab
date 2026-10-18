@@ -82,7 +82,7 @@ try {
     await page.locator('#preview').click({ position: { x: bounds.width * 0.75, y: bounds.height * 0.25 } });
     const paramsPath = await save('save-project', 'rea-studio-project.json');
     const params = JSON.parse(await readFile(paramsPath, 'utf8'));
-    assert.equal(params.version, 2); assert.equal(params.output.resolution, resolution);
+    assert.equal(params.version, 3); assert.equal(params.output.resolution, resolution);
     assert.ok(Math.abs(params.zoom.x - 0.75) < 0.005); assert.ok(Math.abs(params.zoom.y - 0.25) < 0.005);
     await page.locator('#output-resolution').selectOption('720p');
     await page.locator('#project-input').setInputFiles(paramsPath); await statusIncludes('参数已恢复');

@@ -3,6 +3,7 @@ import { cp, mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promise
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildCursor } from './build-cursor.mjs';
 const require = createRequire(import.meta.url);
 const studio = fileURLToPath(new URL('../', import.meta.url));
 const electronEntry = require.resolve('../.local/tooling/node_modules/electron/package.json');
@@ -21,7 +22,8 @@ await mkdir(application);
 await writeFile(join(application, 'package.json'), JSON.stringify({ name: meta.name, productName: 'REA Studio Lab', version: meta.version, private: true, main: 'desktop/main.cjs', description: meta.description, license: 'MIT' }, null, 2) + '\n');
 await cp(join(studio, 'public'), join(application, 'public'), { recursive: true });
 await mkdir(join(application, 'desktop'));
-for (const name of ['main.cjs', 'preload.cjs', 'picker-preload.cjs', 'picker.html', 'picker.css', 'picker.js']) await cp(join(studio, 'desktop', name), join(application, 'desktop', name));
+for (const name of ['main.cjs', 'preload.cjs', 'cursor.cjs', 'cursor-helper.cs', 'picker-preload.cjs', 'picker.html', 'picker.css', 'picker.js']) await cp(join(studio, 'desktop', name), join(application, 'desktop', name));
+await buildCursor(join(application, 'desktop/cursor-helper.exe'));
 await cp(join(studio, 'LICENSE'), join(application, 'LICENSE'));
 await cp(join(studio, 'desktop', 'README.zh-CN.md'), join(destination, '使用说明.txt'));
 await cp(join(studio, '..', 'LICENSE'), join(destination, 'REA-UPSTREAM-LICENSE.txt'));

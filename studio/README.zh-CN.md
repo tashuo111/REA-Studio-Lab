@@ -12,6 +12,7 @@
 - `public/app.mjs`：浏览器捕获、播放器、导出和编辑器状态。
 - `desktop/main.cjs`：桌面生命周期、静态协议、用户选择后授予屏幕捕获、系统另存为。沙盒渲染器不开放 Node.js、文件读写或命令执行接口。
 - `desktop/picker.*`：用户明确选择屏幕或窗口；取消、关闭和超时都拒绝该次捕获。
+- `desktop/cursor.cjs`：所选捕获来源的轨迹生命周期。屏幕用 Electron DIP 坐标；窗口用只读 Windows 采集组件。渲染器只能对本次用户选择的 token 开始/停止，不接受任意句柄、路径或命令。
 - `desktop/build.mjs`：复制固定 Electron 运行时及应用白名单到全新目录，保留许可；不会覆盖已有交付文件夹。
 - `tests/`：项目边界及服务器测试，浏览器端到端验证。
 - `.local/`：本机依赖、测试输出和 REA 完整证据，Git 忽略。
@@ -74,5 +75,28 @@ node studio/tests/desktop.mjs
 文件和媒体由用户在浏览器中选择，项目参数以本地 JSON 下载。恢复视频项目时需要相同字节内容的原片。SHA-256 目前通过 Web Crypto 一次性读取文件计算，大视频会增加峰值内存；尚未测量 512 MiB 上限场景、长视频、4K 性能或跨浏览器结果。
 
 浏览器捕获自带可见的来源选择与停止分享控件；代码不尝试替用户授权。自动点击追踪需要独立的事件采集与时间同步设计，不能从任意普通视频中恢复原生鼠标事件。
+
+## 0.4 鼠标跟随
+
+本版按用户要求新增原生鼠标位置记录，未增加点击/键盘钩子。右侧「缩放方式」选择固定焦点或跟随鼠标，共用倍率和区间；跟随平滑度为 50–600 ms 的指数平滑时间常数。鼠标不在来源内时保持上次镜头位置。按轨迹预计算并缓存镜头路径，时间查询用二分插值；预览、任意寻址、PNG 和 WebM 共用该路径，避免播放先后顺序影响画面。
+
+参数格式 v3 保存 `pointer.kind` 与最多 4500 个 `{t,x,y}` 采样；`t` 为录屏起点后的秒数，`x/y` 为来源内的归一化坐标，均为 null 表示来源外/不可见。参数 JSON 上限从 256 KiB 调整到 2 MiB，可容纳 2 分钟轨迹的格式化 JSON。解析器拒绝无序、越界、非有限值、半空坐标和超量采样；按原片 SHA-256 绑定，不接受将轨迹恢复到另一段视频。v1/v2 迁移为固定焦点。
+
+Windows 窗口采样由 `cursor-helper.cs` 编译成 .NET Framework 4 x64 小型组件，仅读取鼠标位置、窗口边界与可见状态，不截屏、不读键盘、不写文件、不联网。构建使用 Windows 已有的 `Microsoft.NET/Framework64/v4.0.30319/csc.exe`；用户包包含编译结果，无需安装编译器。开发直接跑 `main.cjs` 或测试前，运行 `node studio/desktop/build-cursor.mjs`；`start.mjs` 和 `build.mjs` 会自动构建。组件在父进程关闭标准输入、录制结束、窗口关闭或看门狗到期时退出；保留已采样内容并报告中途失败。
+
+屏幕坐标依据 [Electron screen](https://www.electronjs.org/docs/latest/api/screen) 和 [来源 display_id](https://www.electronjs.org/docs/latest/api/structures/desktop-capturer-source)，按匹配显示器的 DIP 边界归一化。窗口依据 [GetPhysicalCursorPos](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getphysicalcursorpos) 和 [DWM 扩展边界](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/nf-dwmapi-dwmgetwindowattribute)，采样线程采用 per-monitor DPI awareness。Electron 44 实测本进程来源返回 `window:<HWND>:2`；第三段是 Aura 标识，非零的本进程来源按 client 区域映射，外部窗口按 DWM 可见区域映射；参考 [Electron 原始捕获映射](https://github.com/electron/electron/blob/main/shell/browser/electron_browser_context.cc)。不能把文档中的 `0/1` 示例当作严格枚举。
+
+主进程和渲染器用 `performance.timeOrigin + performance.now()` 对齐录制开始；原生采样用 Stopwatch 单调时钟映射，避免管道读取延迟累计成轨迹漂移。计时器请求间隔 33 ms，实际采样取决于系统调度；本机 72 秒真实外部窗口测试约 21 Hz。未承诺输入与视频逐帧同步。显示器热插拔、特殊游戏窗口、自绘鼠标、录制中改变窗口尺寸或跨 DPI 显示器移动尚未全面验证；建议录制时保持窗口尺寸和显示设置不变。
+
+真实窗口验证（仅录测试自己创建的窗口）：
+
+```powershell
+node studio/desktop/build-cursor.mjs
+node studio/tests/pointer-desktop.mjs
+$env:STUDIO_EXTERNAL_POINTER = '1'
+node studio/tests/pointer-desktop.mjs
+```
+
+`STUDIO_DESKTOP_EXE` 指向打包后的程序可验证便携版。`STUDIO_POINTER_TEST_OUTPUT` 指定测试产物位置。测试覆盖默认跟随、两种缩放模式、相同时间寻址的一致性、原片与参数恢复、2K 真实 WebM 导出、来源不匹配拒绝以及组件回收。`STUDIO_POINTER_MANUAL=1` 会等待测试窗口内的真实点击，再由测试目录中的 `manual-done.txt` 结束等待；每次需使用新的输出目录。单元测试另覆盖负坐标屏幕及 100/125/150/200% 坐标变换，这不等于多显示器硬件实测。证据见 `research/pointer-verification.json`；CPU 和峰值内存未测量。
 
 新增原型采用 [MIT](LICENSE)；它是本地实验项目，与 Screen Studio 官方没有隶属关系。上游 REA 的许可和声明位于根目录。

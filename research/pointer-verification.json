@@ -1,0 +1,529 @@
+{
+  "checkedAt": "2026-10-18T12:32:18.659Z",
+  "version": "0.4.0",
+  "upstreamPreservedAt": "c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96",
+  "sourceSha256": {
+    "studio/public/app.mjs": "ea1a0acd5523ccd637296cbfe873dbce410670076975ceca02bed8c1aa1c5de9",
+    "studio/public/index.html": "19e056289c414f350640927f54a0749fe0061df423eecd6117fa93fc9805c348",
+    "studio/public/media.mjs": "bae52c303140ba7b02c31e00fd24565927436a27c28ab17dd7e69d60b8213d5c",
+    "studio/public/model.mjs": "b166dd799ae8ea1b6fc4502ff095af64ed434a8d8f9d9a1f3333ab2545789624",
+    "studio/public/render.mjs": "5a351b85d3a50a2d75e05977cf688f6d613e346cbbe1265d58e61ea54bf99a56",
+    "studio/public/styles.css": "67b775d2820205c9512aea50cba3341acc860fbe6bee6a097bdd8edbf43f069d",
+    "studio/desktop/main.cjs": "d95e94fbea432a406ac6f2cc35c2ec6e611c7c6b9e28188fb6a7460d8dede960",
+    "studio/desktop/preload.cjs": "80568185d1f1f330d1a2e6c1ef49f3737043f996d33dc68fb36bb80caea767cc",
+    "studio/desktop/cursor.cjs": "5d4736e3606bd1b4afa92a4447f60866d3a894867013bceb86a3c4bf2539f12e",
+    "studio/desktop/cursor-helper.cs": "8df112a7a7b6a0fb9ade7cc855dbc1ba03372fe99e9e1403fa9e4fbbeda29a08",
+    "studio/desktop/picker-preload.cjs": "2db3abbc8ed85b929a7b8f28aa57487ff31913ce9f222e91ed6a3fb8750bada5",
+    "studio/desktop/picker.html": "878f3490c2d6f8993e61b20b36599ba1f26e73c84e59655a7ef2439b0286e1eb",
+    "studio/desktop/picker.css": "34363a984cff6630860e5f4e1b43fcbbac48bdc8ca4b7515d66ef3750aea4559",
+    "studio/desktop/picker.js": "43a3952457dc939712c6a1e052bc70847eece992be8a7d198629617f911e1ad2"
+  },
+  "packagedRuntimeFilesMatchSource": 14,
+  "cursorHelper": {
+    "file": "desktop/cursor-helper.exe",
+    "bytes": 6656,
+    "sha256": "5d05b337c8830f1b048adde54e778666212b70328cfa045cc3ccae1b1acbbb9b"
+  },
+  "behavior": [
+    "Zoom dropdown combines fixed focus and pointer follow; scale and time interval are shared",
+    "New Windows captures record source-relative pointer positions; valid traces enable following by default",
+    "One time-indexed smoothed camera path for preview, seeking, PNG and WebM",
+    "Project v3 embeds bounded trace metadata; v1/v2 migrate to manual focus; restores require original media SHA-256"
+  ],
+  "tests": {
+    "node": {
+      "passed": 11,
+      "failed": 0
+    },
+    "browser": {
+      "scenariosPassed": 7,
+      "pageErrors": []
+    },
+    "desktopRegression": {
+      "testedAt": "2026-10-18T12:20:51.937Z",
+      "executablePath": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\studio\\.local\\tooling\\node_modules\\.pnpm\\electron@44.9.0\\node_modules\\electron\\dist\\electron.exe",
+      "versions": {
+        "electron": "44.9.0",
+        "chrome": "152.0.7977.167",
+        "node": "24.22.0"
+      },
+      "checks": [
+        "Standalone secure local protocol; renderer has no Node.js or picker IPC access; only listed assets served",
+        "Native download handling saves JSON/PNG/WebM; edited 2-second WebM decodes at 1280x720",
+        "1080p: PNG and real decoded WebM 1920x1080; focus geometry and project restore; selected resolution survives import",
+        "1440p: PNG and real decoded WebM 2560x1440; focus geometry and project restore; selected resolution survives import",
+        "2160p: PNG and real decoded WebM 3840x2160; focus geometry and project restore; selected resolution survives import",
+        "Version 1 project migrates to 720p with its original edits",
+        "Capture picker cancellation returns to the editor without starting capture",
+        "Real Windows window capture of test-owned fixture; stop, save, decode: 1180x696, 2.01 seconds",
+        "Closing picker cancels request; export cancellation releases controls"
+      ],
+      "resolutionResults": [
+        {
+          "resolution": "1080p",
+          "width": 1920,
+          "height": 1080,
+          "duration": 1.434,
+          "bytes": 246754,
+          "exportWallMs": 1655,
+          "outputFile": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\studio\\.local\\desktop-0.4.0-tests/1792326030648-rea-studio-export.webm"
+        },
+        {
+          "resolution": "1440p",
+          "width": 2560,
+          "height": 1440,
+          "duration": 1.43,
+          "bytes": 309470,
+          "exportWallMs": 1655,
+          "outputFile": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\studio\\.local\\desktop-0.4.0-tests/1792326033243-rea-studio-export.webm"
+        },
+        {
+          "resolution": "2160p",
+          "width": 3840,
+          "height": 2160,
+          "duration": 1.317,
+          "bytes": 555439,
+          "exportWallMs": 1661,
+          "outputFile": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\studio\\.local\\desktop-0.4.0-tests/1792326036271-rea-studio-export.webm"
+        }
+      ],
+      "pageErrors": [],
+      "limitations": [
+        "System Save As UI bypassed only by test harness setSavePath; production uses Save As",
+        "Actual capture limited to a test-owned application window; full-screen capture and long recordings not tested",
+        "High-resolution encoding uses a generated 720p demo as the source: verifies output pixels, not recovered 4K source detail",
+        "4K checks use short clips; sustained frame rate, CPU and peak memory have not been measured"
+      ]
+    },
+    "packagedInternalWindow": {
+      "testedAt": "2026-10-18T12:29:57.709Z",
+      "executablePath": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\..\\REA-Studio-Lab-Windows-0.4.0\\REA Studio Lab.exe",
+      "externalWindow": false,
+      "checks": [
+        "No trace on old/demo video; following is disabled and unselected capture tokens cannot start sampling",
+        "Real Windows mouse samples map to a moving decorated capture window; new recording enables follow; helper exits on stop",
+        "Fixed/follow modes share zoom timing; preview images differ; seeking is deterministic; source + JSON restore full trace and smoothing",
+        "Following camera exports to decoded 2560x1440 WebM; a trace cannot be applied to a different video"
+      ],
+      "errors": [],
+      "realMouseInput": false,
+      "clicks": [
+        {
+          "x": 0.7705041614127751,
+          "y": 0.47957371225577267
+        },
+        {
+          "x": 0.3190368927897503,
+          "y": 0.48904679130703266
+        },
+        {
+          "x": 0.6899925214711484,
+          "y": 0.44404973357015987
+        }
+      ],
+      "stages": [
+        {
+          "fraction": 0.22,
+          "point": {
+            "x": 800,
+            "y": 938
+          },
+          "bounds": {
+            "x": 602,
+            "y": 638,
+            "width": 900,
+            "height": 600
+          },
+          "displays": [
+            {
+              "id": 742226178,
+              "scaleFactor": 1.5,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1707,
+                "height": 1067
+              }
+            }
+          ]
+        },
+        {
+          "fraction": 0.78,
+          "point": {
+            "x": 562,
+            "y": 768
+          },
+          "bounds": {
+            "x": -140,
+            "y": 468,
+            "width": 900,
+            "height": 600
+          },
+          "displays": [
+            {
+              "id": 742226178,
+              "scaleFactor": 1.5,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1707,
+                "height": 1067
+              }
+            }
+          ]
+        },
+        {
+          "fraction": 0.35,
+          "point": {
+            "x": 142,
+            "y": 814
+          },
+          "bounds": {
+            "x": -173,
+            "y": 514,
+            "width": 902,
+            "height": 600
+          },
+          "displays": [
+            {
+              "id": 742226178,
+              "scaleFactor": 1.5,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1707,
+                "height": 1067
+              }
+            }
+          ]
+        }
+      ],
+      "source": {
+        "kind": "video",
+        "name": "recording-2026-10-18T12-29-50-159Z.webm",
+        "duration": 3.696,
+        "width": 1330,
+        "height": 846,
+        "size": 129781,
+        "lastModified": 1792326590159,
+        "sha256": "f055ac69b8a39224bf23dacdb6597aed926e8fa6c4c89b118efb4112400b4d11"
+      },
+      "samples": 80,
+      "visibleSamples": 70,
+      "xRange": [
+        0.019578,
+        0.771084
+      ],
+      "export": {
+        "width": 2560,
+        "height": 1440,
+        "duration": 2.729,
+        "bytes": 1905892,
+        "exportWallMs": 2994
+      },
+      "limitations": [
+        "Real capture covers a test-owned decorated window on this Windows computer; full-screen capture and mixed-DPI multiple-monitor hardware not exercised",
+        "Coordinate transform tests cover negative origins and 100/125/150/200 percent scales; these are simulated geometry cases",
+        "Timing is tied to MediaRecorder start and sampled with a 33ms timer, not frame-accurate input capture",
+        "CPU and peak process-family memory not measured"
+      ]
+    },
+    "packagedFinalExternalWindow": {
+      "testedAt": "2026-10-18T12:31:27.309Z",
+      "executablePath": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\..\\REA-Studio-Lab-Windows-0.4.0\\REA Studio Lab.exe",
+      "externalWindow": true,
+      "checks": [
+        "No trace on old/demo video; following is disabled and unselected capture tokens cannot start sampling",
+        "Real Windows mouse samples map to a moving decorated capture window; new recording enables follow; helper exits on stop",
+        "Fixed/follow modes share zoom timing; preview images differ; seeking is deterministic; source + JSON restore full trace and smoothing",
+        "Following camera exports to decoded 2560x1440 WebM; a trace cannot be applied to a different video"
+      ],
+      "errors": [],
+      "realMouseInput": false,
+      "clicks": [],
+      "stages": [
+        {
+          "fraction": 0.22,
+          "point": {
+            "x": 502,
+            "y": 584
+          },
+          "bounds": {
+            "x": 304,
+            "y": 284,
+            "width": 900,
+            "height": 600
+          },
+          "displays": [
+            {
+              "id": 742226178,
+              "scaleFactor": 1.5,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1707,
+                "height": 1067
+              }
+            }
+          ]
+        },
+        {
+          "fraction": 0.78,
+          "point": {
+            "x": 593,
+            "y": 649
+          },
+          "bounds": {
+            "x": -109,
+            "y": 349,
+            "width": 902,
+            "height": 601
+          },
+          "displays": [
+            {
+              "id": 742226178,
+              "scaleFactor": 1.5,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1707,
+                "height": 1067
+              }
+            }
+          ]
+        },
+        {
+          "fraction": 0.35,
+          "point": {
+            "x": 554,
+            "y": 697
+          },
+          "bounds": {
+            "x": 239,
+            "y": 397,
+            "width": 901,
+            "height": 601
+          },
+          "displays": [
+            {
+              "id": 742226178,
+              "scaleFactor": 1.5,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1707,
+                "height": 1067
+              }
+            }
+          ]
+        }
+      ],
+      "source": {
+        "kind": "video",
+        "name": "recording-2026-10-18T12-31-19-795Z.webm",
+        "duration": 3.643,
+        "width": 1334,
+        "height": 894,
+        "size": 136527,
+        "lastModified": 1792326679795,
+        "sha256": "145608663d587c74b3ec9c68a416d3a89ad35b2239e650edd27f95f74901abb5"
+      },
+      "samples": 79,
+      "visibleSamples": 79,
+      "xRange": [
+        0.216216,
+        0.783946
+      ],
+      "export": {
+        "width": 2560,
+        "height": 1440,
+        "duration": 2.738,
+        "bytes": 1877303,
+        "exportWallMs": 2997
+      },
+      "limitations": [
+        "Real capture covers a test-owned decorated window on this Windows computer; full-screen capture and mixed-DPI multiple-monitor hardware not exercised",
+        "Coordinate transform tests cover negative origins and 100/125/150/200 percent scales; these are simulated geometry cases",
+        "Timing is tied to MediaRecorder start and sampled with a 33ms timer, not frame-accurate input capture",
+        "CPU and peak process-family memory not measured"
+      ]
+    },
+    "realInputExternalWindow": {
+      "testedAt": "2026-10-18T12:26:54.178Z",
+      "executablePath": "C:\\Users\\Administrator\\Documents\\Codex\\2026-10-17\\referenced-chatgpt-conversation-this-is-an\\outputs\\rea-screen-studio\\studio\\.local\\tooling\\node_modules\\.pnpm\\electron@44.9.0\\node_modules\\electron\\dist\\electron.exe",
+      "externalWindow": true,
+      "checks": [
+        "No trace on old/demo video; following is disabled and unselected capture tokens cannot start sampling",
+        "Real Windows clicks agree with recorded source-relative cursor coordinates within 2.5 percent on both axes",
+        "Real Windows mouse samples map to a moving decorated capture window; new recording enables follow; helper exits on stop",
+        "Fixed/follow modes share zoom timing; preview images differ; seeking is deterministic; source + JSON restore full trace and smoothing",
+        "Following camera exports to decoded 2560x1440 WebM; a trace cannot be applied to a different video"
+      ],
+      "errors": [],
+      "realMouseInput": true,
+      "clicks": [
+        {
+          "x": 0.2701279272075162,
+          "y": 0.5766726234666407
+        },
+        {
+          "x": 0.7291196388261851,
+          "y": 0.5885139316267485
+        },
+        {
+          "x": 0.21670428893905191,
+          "y": 0.6074600355239786
+        },
+        {
+          "x": 0.6877351851280333,
+          "y": 0.6039076376554174
+        },
+        {
+          "x": 0.2942061930154839,
+          "y": 0.6098283188381162
+        },
+        {
+          "x": 0.6869827167175155,
+          "y": 0.6216696269982238
+        },
+        {
+          "x": 0.24003010355861137,
+          "y": 0.595618727363871
+        },
+        {
+          "x": 0.24003010355861137,
+          "y": 0.595618727363871
+        },
+        {
+          "x": 0.7644846207939475,
+          "y": 0.5932504440497336
+        }
+      ],
+      "stages": [
+        {
+          "fraction": 0.22,
+          "point": {
+            "x": 852,
+            "y": 875
+          },
+          "bounds": {
+            "x": 654,
+            "y": 575,
+            "width": 900,
+            "height": 601
+          },
+          "displays": [
+            {
+              "id": 742226178,
+              "scaleFactor": 1.5,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1707,
+                "height": 1067
+              }
+            }
+          ]
+        },
+        {
+          "fraction": 0.78,
+          "point": {
+            "x": 988,
+            "y": 817
+          },
+          "bounds": {
+            "x": 286,
+            "y": 517,
+            "width": 900,
+            "height": 601
+          },
+          "displays": [
+            {
+              "id": 742226178,
+              "scaleFactor": 1.5,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1707,
+                "height": 1067
+              }
+            }
+          ]
+        },
+        {
+          "fraction": 0.35,
+          "point": {
+            "x": 866,
+            "y": 803
+          },
+          "bounds": {
+            "x": 551,
+            "y": 503,
+            "width": 901,
+            "height": 601
+          },
+          "displays": [
+            {
+              "id": 742226178,
+              "scaleFactor": 1.5,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 1707,
+                "height": 1067
+              }
+            }
+          ]
+        }
+      ],
+      "source": {
+        "kind": "video",
+        "name": "recording-2026-10-18T12-26-46-938Z.webm",
+        "duration": 72.205,
+        "width": 1334,
+        "height": 894,
+        "size": 2675732,
+        "lastModified": 1792326406938,
+        "sha256": "8228a60e7c54ae461868b35658d5bcf3af870cc92bdc15dee18bae15e4a7a8c4"
+      },
+      "samples": 1541,
+      "visibleSamples": 1331,
+      "xRange": [
+        0.086336,
+        0.965465
+      ],
+      "export": {
+        "width": 2560,
+        "height": 1440,
+        "duration": 2.725,
+        "bytes": 2032967,
+        "exportWallMs": 2990
+      },
+      "limitations": [
+        "Real capture covers a test-owned decorated window on this Windows computer; full-screen capture and mixed-DPI multiple-monitor hardware not exercised",
+        "Coordinate transform tests cover negative origins and 100/125/150/200 percent scales; these are simulated geometry cases",
+        "Timing is tied to MediaRecorder start and sampled with a 33ms timer, not frame-accurate input capture",
+        "CPU and peak process-family memory not measured"
+      ],
+      "validationNote": "Original result label said 2 percent; executed assertion tolerance was 0.025. Real pointerdown events were observed; some Computer Use calls reported intervening user input, so this is not a claim that every click was automatically injected."
+    }
+  },
+  "release": {
+    "directory": "../REA-Studio-Lab-Windows-0.4.0",
+    "executable": "REA Studio Lab.exe",
+    "archive": {
+      "name": "REA-Studio-Lab-Windows-0.4.0.zip",
+      "bytes": 163314654,
+      "sha256": "4f79aeb3a19377a6191800ad3348cb9641880edeaa5282d7fc28b4b6cc7b0e67"
+    }
+  },
+  "limitations": [
+    "No real full-screen recording test; screen sampling lifecycle and coordinate normalization validated with deterministic tests",
+    "Actual Windows capture verified at 150 percent scale with in-process and external decorated windows; mixed-DPI multi-monitor hardware not tested",
+    "Windows native cursor sampling requested every 33ms; observed approximately 21Hz in the 72-second live-input exercise",
+    "Recording-clock alignment and real-time MediaRecorder export are approximate; no frame-accurate synchronization or sustained FPS claim",
+    "Resize during recording, special windows and game-drawn cursors are not comprehensively validated",
+    "Old video cursor recognition, automatic click-based zoom regions, audio and MP4 are not implemented",
+    "CPU and peak process-family memory were not measured; short export wall times and output sizes are included"
+  ]
+}
