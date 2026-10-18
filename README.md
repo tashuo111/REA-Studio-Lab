@@ -6,10 +6,10 @@ REA Studio Lab 是一个面向 Windows x64 的桌面录屏与缩放视频编辑�
 
 ## 版本与下载
 
-- [v0.4.0 源码标签](https://github.com/tashuo111/REA-Studio-Lab/tree/v0.4.0)：桌面端新录制可选择固定焦点或鼠标跟随，并保留 720p、1080p、2K 和 4K 导出。
-- [v0.3.0 源码标签](https://github.com/tashuo111/REA-Studio-Lab/tree/v0.3.0)：包含固定焦点缩放和多个输出分辨率的 Windows 桌面版本。
+- [v0.4.0 发布页](https://github.com/tashuo111/REA-Studio-Lab/releases/tag/v0.4.0)：新增录制时鼠标跟随缩放，并保留手动缩放；提供 [Windows x64 ZIP](https://github.com/tashuo111/REA-Studio-Lab/releases/download/v0.4.0/REA-Studio-Lab-Windows-0.4.0.zip) 和 [SHA-256 校验文件](https://github.com/tashuo111/REA-Studio-Lab/releases/download/v0.4.0/REA-Studio-Lab-Windows-0.4.0.zip.sha256)。
+- [v0.3.0 发布页](https://github.com/tashuo111/REA-Studio-Lab/releases/tag/v0.3.0)：包含固定焦点缩放和多个输出分辨率；提供 [Windows x64 ZIP](https://github.com/tashuo111/REA-Studio-Lab/releases/download/v0.3.0/REA-Studio-Lab-Windows-0.3.0.zip) 和 [SHA-256 校验文件](https://github.com/tashuo111/REA-Studio-Lab/releases/download/v0.3.0/REA-Studio-Lab-Windows-0.3.0.zip.sha256)。
 
-Windows x64 免安装 ZIP 和对应的 SHA-256 校验文件已完成构建，正在准备发布到 GitHub Releases。公开下载可用后会在此处更新链接。安装包解压完整文件夹后运行 `REA Studio Lab.exe`；当前版本没有安装程序。
+两个版本均为 Windows x64 免安装便携包。下载后解压完整文件夹并运行 `REA Studio Lab.exe`；当前版本没有安装程序。可用 PowerShell 命令 `Get-FileHash .\REA-Studio-Lab-Windows-0.4.0.zip -Algorithm SHA256` 核对下载包，并与对应发布页显示的摘要比较。
 
 ## 已实现功能
 
