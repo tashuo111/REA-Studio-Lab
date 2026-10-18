@@ -4,12 +4,12 @@ REA Studio Lab 是一个面向 Windows x64 的桌面录屏与缩放视频编辑�
 
 [简体中文功能与来源说明](studio/README.zh-CN.md) · [研究范围](research/README.zh-CN.md) · [版本功能、实现和许可证说明](RELEASE-NOTES.md) · [上游原始 README](UPSTREAM-README.md)
 
-## 下载
+## 版本与下载
 
-- [v0.4.0：录制鼠标跟随缩放](https://github.com/tashuo111/REA-Studio-Lab/releases/tag/v0.4.0)：桌面端新录制可选择固定焦点或鼠标跟随，并保留 720p、1080p、2K 和 4K 导出。
-- [v0.3.0：手动缩放与 2K/4K 导出](https://github.com/tashuo111/REA-Studio-Lab/releases/tag/v0.3.0)：包含固定焦点缩放和多个输出分辨率的 Windows 桌面版本。
+- [v0.4.0 源码标签](https://github.com/tashuo111/REA-Studio-Lab/tree/v0.4.0)：桌面端新录制可选择固定焦点或鼠标跟随，并保留 720p、1080p、2K 和 4K 导出。
+- [v0.3.0 源码标签](https://github.com/tashuo111/REA-Studio-Lab/tree/v0.3.0)：包含固定焦点缩放和多个输出分辨率的 Windows 桌面版本。
 
-每个版本提供 Windows x64 免安装 ZIP 和对应的 SHA-256 校验文件。下载后解压完整文件夹，运行 `REA Studio Lab.exe`。当前版本没有安装程序。
+Windows x64 免安装 ZIP 和对应的 SHA-256 校验文件已完成构建，正在准备发布到 GitHub Releases。公开下载可用后会在此处更新链接。安装包解压完整文件夹后运行 `REA Studio Lab.exe`；当前版本没有安装程序。
 
 ## 已实现功能
 
