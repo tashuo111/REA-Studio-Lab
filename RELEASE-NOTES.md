@@ -1,35 +1,35 @@
-# Release features and implementation notes
+# 版本功能、实现与来源说明
 
-This repository contains two portable Windows x64 builds of the REA Studio Lab prototype. The version tags identify the source commits used for the corresponding builds. Each archive has a matching `.sha256` file.
+本仓库提供两个 REA Studio Lab 原型的 Windows x64 便携版本。Git 标签指向各安装包所依据的源码提交。每个 ZIP 均附带同名 `.sha256` 校验文件。
 
-## 0.3.0 — manual zoom, 2K and 4K
+## v0.3.0：手动缩放、2K 与 4K
 
-- Standalone Electron desktop app; choose a screen or application window, record locally, or import a video.
-- Fixed-focus manual zoom with editable start/end times, magnification, and horizontal/vertical focus.
-- Canvas background, margin, rounded corners, segment trimming, parameter save/restore, PNG frame output, and silent WebM export.
-- Output choices: 720p, 1080p, 2K/QHD (2560 × 1440), and 4K/UHD (3840 × 2160).
-- Preview, PNG, and WebM share the same Canvas composition and output geometry. Export resolution changes the encoded canvas; it does not change the operating-system display resolution or create detail absent from the source.
+- 独立 Electron 桌面应用，可选择屏幕或应用窗口进行本地录制，也可导入本地视频。
+- 固定焦点手动缩放，可设置放大倍率、起止时间以及水平/垂直焦点。
+- 可调整画布背景、留白、圆角和裁剪区间；支持保存/恢复参数、导出 PNG 静帧及无声 WebM。
+- 输出分辨率包括 720p、1080p、2K/QHD（2560 × 1440）和 4K/UHD（3840 × 2160）。
+- 预览、PNG 和 WebM 共用 Canvas 合成及输出画布尺寸。分辨率选项改变编码画布，不会改变操作系统显示分辨率，也不会生成源素材没有的画面细节。
 
-**Implementation:** the editor lives in `studio/`. Electron provides the Windows desktop shell and selected-screen/window capture flow. Browser APIs handle local video playback, `Canvas` compositing, PNG capture, and `MediaRecorder` WebM encoding. Editing parameters use a versioned JSON format. The application does not require the REA analysis engine at runtime.
+**实现方式：**编辑器位于 `studio/`。Electron 提供 Windows 桌面界面和屏幕/窗口选择采集流程；浏览器 API 负责本地视频播放、Canvas 合成、PNG 捕获和 `MediaRecorder` WebM 编码。编辑参数使用带版本号的 JSON 格式。应用运行时不依赖 REA 分析引擎。
 
-**Build provenance:** source commit `4aae199a579cbfefb5a608a632d5794711dee391`, based on upstream `morluto/rea` commit `c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96`. Packaged with Electron 44.9.0 for Windows x64. Build time: 2026-10-18 11:55:55 +08:00. ZIP size: 163,303,841 bytes. SHA-256: `66229a6599e680598109a083bc4321758324cf39a611b6bfee01536efb474622`.
+**构建来源：**源码提交 `4aae199a579cbfefb5a608a632d5794711dee391`，基于上游 `morluto/rea` 提交 `c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96`。使用 Electron 44.9.0 构建 Windows x64 便携版本。构建时间：2026-10-18 11:55:55 +08:00。ZIP 大小：163,303,841 字节。SHA-256：`66229a6599e680598109a083bc4321758324cf39a611b6bfee01536efb474622`。
 
-## 0.4.0 — recorded mouse-follow zoom
+## v0.4.0：录制鼠标跟随缩放
 
-- Adds a zoom-mode choice between fixed focus and following the mouse for new desktop recordings.
-- Records cursor position and time while capturing the selected screen or window. The user can adjust camera smoothing; the default time constant is 200 ms.
-- Saves up to 4,500 normalized, time-stamped pointer samples in project JSON v3 and binds the trace to the source video content hash.
-- Precomputes a smoothed camera path and reuses it for playback, seeking, PNG frame output, and WebM export, so results do not depend on playback order.
-- Retains the 720p, 1080p, 2K/QHD, and 4K/UHD choices and the manual-focus mode.
+- 桌面端新录制可选择固定焦点缩放或跟随鼠标缩放。
+- 录制所选屏幕或窗口时同步记录光标坐标与时间戳；可调整镜头平滑程度，默认时间常数为 200 毫秒。
+- 项目 JSON v3 最多保存 4,500 个归一化时间戳样本，并用源视频内容哈希绑定轨迹。
+- 预先计算平滑后的镜头路径，并在播放、拖动定位、PNG 静帧和 WebM 导出中复用，因此结果不受播放先后顺序影响。
+- 保留 720p、1080p、2K/QHD、4K/UHD 输出和固定焦点模式。
 
-**Implementation:** the Electron main process starts a small C# helper built with the Windows .NET Framework compiler already present on the build machine. The helper reads cursor position and screen/window bounds; it does not capture pixels, read keyboard input, write files, or access the network. The desktop app maps the samples to the capture area, normalizes them, and aligns their monotonic timestamps with the recording. The editor applies exponential smoothing and shares one deterministic time-based camera path across preview and exports. The helper is bundled in the portable folder, so users do not need a compiler installed.
+**实现方式：**Electron 主进程启动一个小型 C# 辅助程序；它使用构建机自带的 Windows .NET Framework 编译器构建。辅助程序只读取光标位置及屏幕/窗口边界，不捕获画面像素、不读取键盘输入、不写入文件，也不访问网络。桌面应用将样本映射至录制区域、归一化坐标，并将单调时钟时间与视频时间对齐。编辑器以指数平滑计算同一条按时间确定的镜头路径，供预览和导出共用。辅助程序已包含在便携文件夹中，使用者不必另外安装编译器。
 
-**Build provenance:** source commit `0aa94883bd2257c18efa198a133980fb96a7810b`, based on upstream `morluto/rea` commit `c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96`. Packaged with Electron 44.9.0 for Windows x64. Build time: 2026-10-18 12:29:16 +08:00. ZIP size: 163,314,654 bytes. SHA-256: `4f79aeb3a19377a6191800ad3348cb9641880edeaa5282d7fc28b4b6cc7b0e67`.
+**构建来源：**源码提交 `0aa94883bd2257c18efa198a133980fb96a7810b`，基于上游 `morluto/rea` 提交 `c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96`。使用 Electron 44.9.0 构建 Windows x64 便携版本。构建时间：2026-10-18 12:29:16 +08:00。ZIP 大小：163,314,654 字节。SHA-256：`4f79aeb3a19377a6191800ad3348cb9641880edeaa5282d7fc28b4b6cc7b0e67`。
 
-## Shared provenance, licenses, and limits
+## 共同来源、许可证与已知限制
 
-- Upstream repository: [morluto/rea](https://github.com/morluto/rea), pinned to commit `c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96`. Its full source tree, Git history, root MIT license, third-party notices, and license files remain in this repository.
-- New prototype code: `studio/`, under its own MIT license in `studio/LICENSE`.
-- Runtime components: Electron 44.9.0 and Chromium notices are bundled with the app; see `LICENSE`, `LICENSES.chromium.html`, and `SOURCE-NOTICES.txt` inside each ZIP.
-- These builds are prototypes, not the commercial app. The original target screenshot was unavailable, so the exact product identity, UI, and zoom algorithm remain unverified. No proprietary code, icon, or screenshot assets from the paid application are included.
-- Recording/export is silent WebM, with a two-minute recording/export limit and a 256 MiB media cache in the packaged app. There is no installer, code signing, or auto-updater. Click-triggered zoom, audio, camera overlay, MP4, and multiple zoom regions are not implemented. Long 4K performance and all hardware/display combinations have not been validated.
+- 上游仓库：[morluto/rea](https://github.com/morluto/rea)，固定在提交 `c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96`。其完整源代码、Git 历史、根目录 MIT 许可证、声明及第三方许可证文件均保留在本仓库。
+- 新增原型代码位于 `studio/`，遵循 `studio/LICENSE` 中的独立 MIT 许可证。
+- Electron 44.9.0 与 Chromium 运行时声明随程序打包；各 ZIP 内含 `LICENSE`、`LICENSES.chromium.html` 和 `SOURCE-NOTICES.txt`。
+- 本项目是原型，不是收费软件本身。由于无法读取原始目标截图，目标产品的具体界面和缩放算法尚未核实。项目未包含收费软件的专有代码、图标或截图素材。
+- 录制和导出为无声 WebM；便携应用限制录制/导出最长两分钟，媒体缓存 256 MiB。当前没有安装程序、代码签名或自动更新。尚未实现点击触发缩放、音频、摄像头画中画、MP4 和多个缩放区域。尚未验证长时间 4K 导出表现及所有硬件/显示设备组合。
